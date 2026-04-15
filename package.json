@@ -1,0 +1,67 @@
+{
+  "name": "gosurf",
+  "version": "1.0.0",
+  "description": "Real-time personalized surf conditions dashboard",
+  "main": "out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "package:win":   "electron-packager . goSurf --platform=win32  --arch=x64 --out=release --overwrite --asar",
+    "package:mac":   "electron-packager . goSurf --platform=darwin --arch=x64 --out=release --overwrite --asar",
+    "package:linux": "electron-packager . goSurf --platform=linux  --arch=x64 --out=release --overwrite --asar",
+    "dist:win":   "npm run build && npm run package:win",
+    "dist:mac":   "npm run build && npm run package:mac",
+    "dist:linux": "npm run build && npm run package:linux",
+    "zip:win":   "npm run dist:win   && powershell -Command \"Compress-Archive -Path release\\goSurf-win32-x64   -DestinationPath release\\goSurf-win-x64.zip   -Force\"",
+    "zip:mac":   "npm run dist:mac   && powershell -Command \"Compress-Archive -Path release\\goSurf-darwin-x64  -DestinationPath release\\goSurf-mac-x64.zip   -Force\"",
+    "zip:linux": "npm run dist:linux && powershell -Command \"Compress-Archive -Path release\\goSurf-linux-x64   -DestinationPath release\\goSurf-linux-x64.zip  -Force\"",
+    "zip:all":   "npm run build && npm run package:win && npm run package:mac && npm run package:linux && powershell -Command \"Compress-Archive -Path release\\goSurf-win32-x64  -DestinationPath release\\goSurf-win-x64.zip   -Force; Compress-Archive -Path release\\goSurf-darwin-x64 -DestinationPath release\\goSurf-mac-x64.zip   -Force; Compress-Archive -Path release\\goSurf-linux-x64  -DestinationPath release\\goSurf-linux-x64.zip  -Force\""
+  },
+  "dependencies": {
+    "@electron-toolkit/preload": "^3.0.2",
+    "@electron-toolkit/tsconfig": "^2.0.0",
+    "@electron-toolkit/utils": "^4.0.0",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^0.441.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-leaflet": "^4.2.1"
+  },
+  "devDependencies": {
+    "@electron/packager": "^19.1.0",
+    "@types/leaflet": "^1.9.12",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.20",
+    "cross-env": "^10.1.0",
+    "electron": "^31.4.0",
+    "electron-builder": "^25.0.5",
+    "electron-vite": "^2.3.0",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.12",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.8"
+  },
+  "build": {
+    "appId": "com.gosurf.app",
+    "productName": "goSurf",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "out/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "dir",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    }
+  }
+}

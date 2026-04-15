@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build output (electron-vite compiled output)
+out/
+
+# Packaged distributables
+release/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor directories
+.vscode/
+.idea/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# TypeScript cache
+*.tsbuildinfo
