@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { X, MapPin, Trash2, Plus, Power, Moon, Sun } from 'lucide-react'
-import { Location, SurfPreferences, BEACH_FACING_OPTIONS } from '../types'
+import { X, MapPin, Trash2, Plus, Power } from 'lucide-react'
+import { Location, SurfPreferences, BEACH_FACING_OPTIONS, AppTheme } from '../types'
 import MapPicker from './MapPicker'
 
 interface SettingsModalProps {
@@ -9,7 +9,13 @@ interface SettingsModalProps {
   onSavePreferences: (prefs: SurfPreferences) => void
   onSaveLocations: (locs: Location[]) => void
   onClose: () => void
-  darkMode: boolean
+  theme: AppTheme
+}
+
+const THEME_LABELS: Record<AppTheme, string> = {
+  'simple-light': 'Simple — Light',
+  'simple-dark':  'Simple — Dark',
+  'classic':      'Classic'
 }
 
 export default function SettingsModal({
@@ -18,7 +24,7 @@ export default function SettingsModal({
   onSavePreferences,
   onSaveLocations,
   onClose,
-  darkMode
+  theme
 }: SettingsModalProps) {
   const [prefs, setPrefs] = useState<SurfPreferences>(preferences)
   const [locs, setLocs] = useState<Location[]>(locations)
@@ -28,8 +34,9 @@ export default function SettingsModal({
   const [pendingName, setPendingName] = useState('')
   const [pendingFacing, setPendingFacing] = useState<string>('W')
 
-  const ink   = darkMode ? '#ece8df' : '#0a0a0a'
-  const paper = darkMode ? '#0f0f0f' : '#f5f0e8'
+  // Modal always uses a neutral dark appearance so it's readable over any background
+  const ink   = theme === 'simple-light' ? '#0a0a0a' : '#ece8df'
+  const paper = theme === 'simple-light' ? '#f5f0e8' : '#0f0f0f'
 
   const handleSaveAll = () => {
     onSavePreferences(prefs)
@@ -125,38 +132,27 @@ export default function SettingsModal({
             Display
           </h3>
 
-          {/* Dark Mode */}
-          <div
-            className="flex items-center justify-between px-4 py-3 mb-3"
-            style={{ border: `1px solid ${ink}22` }}
-          >
-            <div className="flex items-center gap-3">
-              {prefs.darkMode ? (
-                <Moon className="w-4 h-4" style={{ color: `${ink}60` }} />
-              ) : (
-                <Sun className="w-4 h-4" style={{ color: `${ink}60` }} />
-              )}
-              <span className="text-base font-semibold">Dark Mode</span>
+          {/* Theme */}
+          <div className="mb-3">
+            <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: `${ink}45` }}>Theme</p>
+            <div className="grid grid-cols-3 gap-2">
+              {(['simple-light', 'simple-dark', 'classic'] as AppTheme[]).map((t) => {
+                const active = (prefs.theme ?? 'simple-light') === t
+                return (
+                  <button
+                    key={t}
+                    onClick={() => setPrefs({ ...prefs, theme: t })}
+                    className="py-2.5 px-2 text-xs font-black uppercase tracking-wide transition-colors"
+                    style={active
+                      ? { backgroundColor: ink, color: paper, border: `2px solid ${ink}` }
+                      : { backgroundColor: 'transparent', color: ink, border: `2px solid ${ink}30` }
+                    }
+                  >
+                    {THEME_LABELS[t]}
+                  </button>
+                )
+              })}
             </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={prefs.darkMode}
-              onClick={() => setPrefs({ ...prefs, darkMode: !prefs.darkMode })}
-              className="relative inline-flex h-6 w-12 items-center transition-colors"
-              style={{
-                border: `2px solid ${ink}`,
-                backgroundColor: prefs.darkMode ? ink : 'transparent'
-              }}
-            >
-              <span
-                className="inline-block h-4 w-4 transition-transform"
-                style={{
-                  backgroundColor: prefs.darkMode ? paper : ink,
-                  transform: prefs.darkMode ? 'translateX(24px)' : 'translateX(4px)'
-                }}
-              />
-            </button>
           </div>
 
           {/* Slideshow */}

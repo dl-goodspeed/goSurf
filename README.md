@@ -1,18 +1,25 @@
 # goSurf
 
-A full-screen desktop app that shows real-time surf conditions for up to 3 saved locations. Runs on Windows, macOS, and Linux. Data is pulled from the free [Open-Meteo](https://open-meteo.com/) Marine and Forecast APIs — no account or API key required.
+A full-screen desktop surf conditions dashboard for up to 3 saved locations. Runs on Windows, macOS, and Linux. Data is pulled from the free [Open-Meteo](https://open-meteo.com/) Marine and Forecast APIs — no account or API key required.
 
 ## Features
 
 - **Live surf conditions** — wave height, wave period, wind speed & direction, water temperature, tide estimate
-- **Stoke indicators** — green/red LED next to each metric shows whether it meets your preferences
-- **Offshore wind check** — evaluates whether wind is offshore based on your beach's facing direction
-- **Tide estimate** — rising/falling state, time to next high/low, spring vs. neap indicator
-- **Time-of-day theme** — background gradient shifts from deep navy at night through orange at dawn/dusk to teal/cyan during the day
-- **Interactive map** — click anywhere on the map to drop a pin and save a location
-- **Up to 3 locations** — view all your spots side-by-side on one screen
-- **Auto-refresh** — data updates every minute, and immediately when you close Settings
-- **Persistent settings** — preferences and locations are saved locally and survive restarts
+- **Smart wind evaluation** — separate acceptable speed thresholds for offshore vs. onshore wind, since offshore speed matters more for wave quality
+- **Single-location full-screen display** — one spot fills the entire screen at a time; navigate between locations with left/right arrows or dot indicators
+- **Slideshow mode** — automatically cycles through your saved locations every 20 seconds with a slide animation
+- **Stoke verdict** — `PUMPING`, `DECENT`, or `POOR / BLOWN` badge based on whether your wave height, period, and wind preferences are all met
+- **Condition indicators** — filled circle = meets your preference, empty circle = does not (Classic theme uses green/red)
+- **Offshore wind check** — evaluates wind direction against the beach's facing to determine offshore vs. onshore
+- **Tide estimate** — rising/falling state with `WavesArrowUp` / `WavesArrowDown` icons, time to next high/low, spring vs. neap indicator
+- **Three themes:**
+  - **Simple — Light** — e-ink inspired, warm paper white background with near-black ink
+  - **Simple — Dark** — inverted e-ink, near-black background with warm off-white text
+  - **Classic** — time-of-day gradient background (deep navy at night → orange at dawn/dusk → teal/cyan midday) with colored indicators and glassy overlays
+- **Interactive map** — click anywhere on a Leaflet map to pin a location
+- **Up to 3 locations** — add, name, and delete spots at any time
+- **Auto-refresh** — conditions update every minute, and immediately when Settings is closed
+- **Persistent settings** — all preferences and locations are saved locally and survive restarts
 
 ---
 
@@ -46,18 +53,18 @@ Then try right-click → Open again.
 
 1. Extract the zip — you'll get a folder called `goSurf-linux-x64`.
 2. The executable is simply named `goSurf` inside that folder.
-3. You may need to mark it as executable first. Open a terminal in the folder and run:
+3. You may need to mark it as executable first:
    ```bash
    chmod +x goSurf
    ./goSurf
    ```
-4. On some distributions you can also right-click the file in a file manager and choose **Run as Program** or **Execute**.
+4. On some distributions you can also right-click the file in a file manager and choose **Run as Program**.
 
 ---
 
 ## Saving Your Data
 
-Your locations and preferences are saved automatically to your local app data folder the moment you click **Save & Close** in Settings. They persist across restarts. Each person's data is stored on their own machine and is completely independent.
+Locations and preferences are saved automatically when you click **Save & Close** in Settings. They persist across restarts and are stored entirely on your local machine.
 
 | OS | Storage location |
 |---|---|
@@ -73,7 +80,7 @@ Your locations and preferences are saved automatically to your local app data fo
 
 - [Node.js](https://nodejs.org/) v18 or higher
 - npm (comes with Node.js)
-- Windows Developer Mode enabled (required for macOS cross-compilation — `Settings → System → For developers → Developer Mode`)
+- Windows Developer Mode enabled if cross-compiling for macOS (`Settings → System → For developers → Developer Mode`)
 
 ### Installation
 
@@ -84,15 +91,11 @@ npm install
 
 ### Running in Development
 
-Starts the app with hot reload:
-
 ```bash
 npm run dev
 ```
 
 ### Building
-
-Compiles TypeScript and bundles the renderer into `out/`:
 
 ```bash
 npm run build
@@ -100,16 +103,16 @@ npm run build
 
 ### Packaging & Zipping
 
-Each `zip:*` command builds the app, packages it for the target platform, and produces a ready-to-share zip in the `release/` folder.
+Each `zip:*` command builds, packages, and produces a ready-to-share zip in `release/`.
 
-| Command | Output zip | Notes |
-|---|---|---|
-| `npm run zip:win` | `release/goSurf-win-x64.zip` | |
-| `npm run zip:mac` | `release/goSurf-mac-x64.zip` | Requires Developer Mode or admin terminal |
-| `npm run zip:linux` | `release/goSurf-linux-x64.zip` | |
-| `npm run zip:all` | All three | Builds once, packages all three platforms |
+| Command | Output zip |
+|---|---|
+| `npm run zip:win` | `release/goSurf-win-x64.zip` |
+| `npm run zip:mac` | `release/goSurf-mac-x64.zip` |
+| `npm run zip:linux` | `release/goSurf-linux-x64.zip` |
+| `npm run zip:all` | All three |
 
-If you only want the unpacked output without zipping:
+Unpacked output only (no zip):
 
 ```bash
 npm run dist:win
@@ -117,34 +120,61 @@ npm run dist:mac
 npm run dist:linux
 ```
 
-> **Why `@electron/packager` and not `electron-builder`?** `electron-builder` downloads a code-signing toolkit that contains macOS symlinks. Windows blocks symlink creation without Developer Mode, causing the build to fail. `@electron/packager` produces equivalent output without that requirement.
+> **Why `@electron/packager` and not `electron-builder`?** `electron-builder` downloads a code-signing toolkit that contains macOS symlinks. Windows blocks symlink creation without Developer Mode, causing the build to fail. `@electron/packager` avoids this entirely.
 
 ---
 
 ## Using the App
 
-1. **Launch the app** — it opens full-screen automatically.
-2. **Open Settings** — click the gear icon in the top-right corner.
-3. **Set your preferences:**
-   - Min/Max wave height (ft)
-   - Min wave period (seconds)
-   - Max wind speed (mph)
-4. **Add a location:**
-   - Click anywhere on the map to drop a pin
-   - Enter a name (e.g. "North Beach")
-   - Select the direction the beach faces (used to calculate offshore wind)
-   - Click **Add Location**
-   - Repeat for up to 3 spots
-5. **Save & Close** — the dashboard loads and conditions refresh immediately.
-6. **To quit** — open Settings and click the **Quit** button (power icon, top-right of the settings panel).
+### First Launch
 
-Each location card shows:
-- Wave height and period with a compass direction
-- Wind speed and direction
-- Whether wind is offshore (Yes/No)
-- Tide state (High/Rising/Low/Falling), time to next extreme, and Spring/Neap indicator
-- Water temperature
-- A color-coded **Stoke** badge: `Pumping`, `Decent`, or `Flat/Blown`
+1. Open Settings (gear icon, top-right).
+2. Configure your surf preferences (see below).
+3. Add at least one location using the map.
+4. Click **Save & Close** — conditions load immediately.
+
+### Settings
+
+| Setting | Description |
+|---|---|
+| **Theme** | `Simple — Light`, `Simple — Dark`, or `Classic` (time-of-day gradient) |
+| **Slideshow** | Auto-advances locations every 20 seconds when enabled |
+| **Measurement System** | Imperial (ft, mph) or Metric (m, km/h) |
+| **Min Wave Height** | Minimum acceptable wave height |
+| **Max Wave Height** | Maximum acceptable wave height |
+| **Min Wave Period** | Minimum acceptable wave period (seconds) |
+| **Max Offshore Wind** | Speed threshold applied when wind is blowing offshore |
+| **Max Onshore Wind** | Speed threshold applied when wind is blowing onshore |
+
+### Adding a Location
+
+1. Click anywhere on the map to drop a pin.
+2. Enter a name (e.g. "North Beach").
+3. Select the direction the beach faces — used to determine whether wind is offshore or onshore.
+4. Click **Add Location**. Repeat for up to 3 spots.
+
+### Navigating Locations
+
+- **Left / Right arrows** on the screen edges — step through locations one at a time
+- **Dot indicators** at the bottom — jump directly to any saved location
+- **Slideshow** (toggle in Settings) — auto-advances every 20 seconds; manual navigation resets the timer
+
+### Reading the Display
+
+Each location screen shows:
+
+| Row | What it tells you |
+|---|---|
+| **Stoke badge** | `PUMPING` (all criteria met) · `DECENT` (two of three) · `POOR / BLOWN` (one or none) |
+| **Wave Height** | Current swell height with pass/fail indicator |
+| **Wave Period** | Swell period in seconds and compass direction with pass/fail indicator |
+| **Wind** | Speed, compass direction, and Offshore/Onshore label; indicator checks speed against the appropriate threshold for the current wind direction |
+| **Tide** | Current state (Rising/Falling/High/Low), time to next extreme, Spring tide note if applicable |
+| **Water Temp** | Sea surface temperature |
+
+The **pass/fail indicator** next to each metric is a filled circle (meets preference) or empty circle (does not). In Classic theme it is green (pass) or red (fail).
+
+To quit the app, open Settings and click the **Quit** button (top-right of the panel).
 
 ---
 
@@ -160,21 +190,21 @@ goSurf/
 │   └── renderer/
 │       ├── index.html
 │       └── src/
-│           ├── App.tsx                 # Root component, state, auto-refresh logic
-│           ├── index.css               # Tailwind + global styles
+│           ├── App.tsx                 # Root component, navigation, slideshow, auto-refresh
+│           ├── index.css               # Tailwind + slide animation keyframes
 │           ├── main.tsx                # React entry point
 │           ├── components/
-│           │   ├── LocationCard.tsx    # Per-spot card with LED indicators
+│           │   ├── LocationCard.tsx    # Full-screen location display with theme support
 │           │   ├── MapPicker.tsx       # react-leaflet map for coordinate selection
-│           │   └── SettingsModal.tsx   # Preferences + location management + quit
+│           │   └── SettingsModal.tsx   # Preferences, theme picker, location management
 │           ├── hooks/
 │           │   ├── useLocalStorage.ts  # Typed localStorage hook
-│           │   └── useTimeTheme.ts     # Time-of-day gradient hook
+│           │   └── useTimeTheme.ts     # Time-of-day gradient hook (used by Classic theme)
 │           ├── services/
 │           │   ├── openMeteo.ts        # API fetching + stoke evaluation logic
 │           │   └── tideCalculator.ts   # Lunar M2 tide estimate (no API required)
 │           └── types/
-│               └── index.ts            # Shared TypeScript types
+│               └── index.ts            # Shared TypeScript types (AppTheme, SurfPreferences, etc.)
 ├── electron.vite.config.ts
 ├── tailwind.config.js
 ├── postcss.config.js
@@ -192,7 +222,7 @@ goSurf/
 | Build tooling | electron-vite |
 | UI | React 18 + TypeScript |
 | Styling | Tailwind CSS |
-| Icons | lucide-react |
+| Icons | lucide-react 1.8.0 |
 | Map | react-leaflet + OpenStreetMap |
 | Data | Open-Meteo Marine & Forecast APIs |
 | Tide estimate | Lunar M2 harmonic calculation (local, no API) |

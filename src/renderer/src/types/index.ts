@@ -6,6 +6,8 @@ export interface Location {
   beachFacing: string // e.g. "N", "NE", "E", "SE", "S", "SW", "W", "NW"
 }
 
+export type AppTheme = 'simple-light' | 'simple-dark' | 'classic'
+
 export interface SurfPreferences {
   minWaveHeight: number          // ft (internal storage always imperial)
   maxWaveHeight: number          // ft
@@ -13,7 +15,7 @@ export interface SurfPreferences {
   maxWindSpeedOffshore: number   // mph — applied when wind is blowing offshore
   maxWindSpeedOnshore: number    // mph — applied when wind is blowing onshore
   useMetric: boolean
-  darkMode: boolean
+  theme: AppTheme
   slideshowEnabled: boolean
 }
 
