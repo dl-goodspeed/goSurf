@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, MapPin, Trash2, Plus, Power } from 'lucide-react'
+import { X, MapPin, Trash2, Plus, Power, Moon, Sun } from 'lucide-react'
 import { Location, SurfPreferences, BEACH_FACING_OPTIONS } from '../types'
 import MapPicker from './MapPicker'
 
@@ -9,6 +9,7 @@ interface SettingsModalProps {
   onSavePreferences: (prefs: SurfPreferences) => void
   onSaveLocations: (locs: Location[]) => void
   onClose: () => void
+  darkMode: boolean
 }
 
 export default function SettingsModal({
@@ -16,16 +17,19 @@ export default function SettingsModal({
   locations,
   onSavePreferences,
   onSaveLocations,
-  onClose
+  onClose,
+  darkMode
 }: SettingsModalProps) {
   const [prefs, setPrefs] = useState<SurfPreferences>(preferences)
   const [locs, setLocs] = useState<Location[]>(locations)
 
-  // New location form state
   const [pendingLat, setPendingLat] = useState<number | null>(null)
   const [pendingLng, setPendingLng] = useState<number | null>(null)
   const [pendingName, setPendingName] = useState('')
   const [pendingFacing, setPendingFacing] = useState<string>('W')
+
+  const ink   = darkMode ? '#ece8df' : '#0a0a0a'
+  const paper = darkMode ? '#0f0f0f' : '#f5f0e8'
 
   const handleSaveAll = () => {
     onSavePreferences(prefs)
@@ -55,16 +59,39 @@ export default function SettingsModal({
     setLocs(locs.filter((l) => l.id !== id))
   }
 
+  const inputClass = "w-full px-3 py-2 font-semibold focus:outline-none"
+  const inputStyle = {
+    backgroundColor: 'transparent',
+    border: `2px solid ${ink}28`,
+    color: ink
+  }
+  const inputFocusStyle = { borderColor: ink }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: `${ink}55` }}>
+      <div
+        className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl p-8"
+        style={{ backgroundColor: paper, border: `2px solid ${ink}`, color: ink }}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-white tracking-tight">Settings</h2>
-          <div className="flex items-center gap-2">
+        <div
+          className="flex items-center justify-between mb-8 pb-5"
+          style={{ borderBottom: `2px solid ${ink}` }}
+        >
+          <h2 className="text-3xl font-black tracking-tight uppercase">Settings</h2>
+          <div className="flex items-center gap-3">
             <button
               onClick={() => window.close()}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-red-400 hover:text-white hover:bg-red-600 border border-red-600/40 hover:border-red-600 transition-all text-sm font-medium"
+              className="flex items-center gap-1.5 px-3 py-1.5 font-black uppercase tracking-wide text-sm transition-colors"
+              style={{ border: `2px solid ${ink}`, color: ink }}
+              onMouseEnter={(e) => {
+                ;(e.currentTarget as HTMLButtonElement).style.backgroundColor = ink
+                ;(e.currentTarget as HTMLButtonElement).style.color = paper
+              }}
+              onMouseLeave={(e) => {
+                ;(e.currentTarget as HTMLButtonElement).style.backgroundColor = 'transparent'
+                ;(e.currentTarget as HTMLButtonElement).style.color = ink
+              }}
               title="Quit goSurf"
             >
               <Power className="w-4 h-4" />
@@ -72,47 +99,152 @@ export default function SettingsModal({
             </button>
             <button
               onClick={handleSaveAll}
-              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
-              title="Save & close settings"
+              className="p-2 transition-colors"
+              style={{ border: `2px solid ${ink}`, color: ink }}
+              onMouseEnter={(e) => {
+                ;(e.currentTarget as HTMLButtonElement).style.backgroundColor = ink
+                ;(e.currentTarget as HTMLButtonElement).style.color = paper
+              }}
+              onMouseLeave={(e) => {
+                ;(e.currentTarget as HTMLButtonElement).style.backgroundColor = 'transparent'
+                ;(e.currentTarget as HTMLButtonElement).style.color = ink
+              }}
+              title="Save & close"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
         </div>
 
-        {/* Units Toggle */}
+        {/* Display */}
         <section className="mb-8">
-          <h3 className="text-lg font-semibold text-cyan-400 mb-4">Units</h3>
-          <div className="flex items-center justify-between bg-slate-800 border border-slate-700 rounded-xl px-4 py-3">
-            <span className="text-sm text-white">Measurement System</span>
+          <h3
+            className="text-xs font-black uppercase tracking-[0.2em] mb-4"
+            style={{ color: `${ink}45` }}
+          >
+            Display
+          </h3>
+
+          {/* Dark Mode */}
+          <div
+            className="flex items-center justify-between px-4 py-3 mb-3"
+            style={{ border: `1px solid ${ink}22` }}
+          >
             <div className="flex items-center gap-3">
-              <span className={`text-sm ${!prefs.useMetric ? 'text-white font-semibold' : 'text-slate-500'}`}>Imperial</span>
+              {prefs.darkMode ? (
+                <Moon className="w-4 h-4" style={{ color: `${ink}60` }} />
+              ) : (
+                <Sun className="w-4 h-4" style={{ color: `${ink}60` }} />
+              )}
+              <span className="text-base font-semibold">Dark Mode</span>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={prefs.darkMode}
+              onClick={() => setPrefs({ ...prefs, darkMode: !prefs.darkMode })}
+              className="relative inline-flex h-6 w-12 items-center transition-colors"
+              style={{
+                border: `2px solid ${ink}`,
+                backgroundColor: prefs.darkMode ? ink : 'transparent'
+              }}
+            >
+              <span
+                className="inline-block h-4 w-4 transition-transform"
+                style={{
+                  backgroundColor: prefs.darkMode ? paper : ink,
+                  transform: prefs.darkMode ? 'translateX(24px)' : 'translateX(4px)'
+                }}
+              />
+            </button>
+          </div>
+
+          {/* Slideshow */}
+          <div
+            className="flex items-center justify-between px-4 py-3 mb-3"
+            style={{ border: `1px solid ${ink}22` }}
+          >
+            <div className="flex flex-col">
+              <span className="text-base font-semibold">Slideshow</span>
+              <span className="text-xs" style={{ color: `${ink}45` }}>Auto-advance locations every 20s</span>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={prefs.slideshowEnabled ?? false}
+              onClick={() => setPrefs({ ...prefs, slideshowEnabled: !(prefs.slideshowEnabled ?? false) })}
+              className="relative inline-flex h-6 w-12 items-center transition-colors"
+              style={{
+                border: `2px solid ${ink}`,
+                backgroundColor: (prefs.slideshowEnabled ?? false) ? ink : 'transparent'
+              }}
+            >
+              <span
+                className="inline-block h-4 w-4 transition-transform"
+                style={{
+                  backgroundColor: (prefs.slideshowEnabled ?? false) ? paper : ink,
+                  transform: (prefs.slideshowEnabled ?? false) ? 'translateX(24px)' : 'translateX(4px)'
+                }}
+              />
+            </button>
+          </div>
+
+          {/* Units */}
+          <div
+            className="flex items-center justify-between px-4 py-3"
+            style={{ border: `1px solid ${ink}22` }}
+          >
+            <span className="text-base font-semibold">Measurement System</span>
+            <div className="flex items-center gap-4">
+              <span
+                className="text-sm font-bold"
+                style={{ color: !prefs.useMetric ? ink : `${ink}28` }}
+              >
+                Imperial
+              </span>
               <button
                 type="button"
                 role="switch"
                 aria-checked={prefs.useMetric}
                 onClick={() => setPrefs({ ...prefs, useMetric: !prefs.useMetric })}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                  prefs.useMetric ? 'bg-cyan-600' : 'bg-slate-600'
-                }`}
+                className="relative inline-flex h-6 w-12 items-center transition-colors"
+                style={{
+                  border: `2px solid ${ink}`,
+                  backgroundColor: prefs.useMetric ? ink : 'transparent'
+                }}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                    prefs.useMetric ? 'translate-x-6' : 'translate-x-1'
-                  }`}
+                  className="inline-block h-4 w-4 transition-transform"
+                  style={{
+                    backgroundColor: prefs.useMetric ? paper : ink,
+                    transform: prefs.useMetric ? 'translateX(24px)' : 'translateX(4px)'
+                  }}
                 />
               </button>
-              <span className={`text-sm ${prefs.useMetric ? 'text-white font-semibold' : 'text-slate-500'}`}>Metric</span>
+              <span
+                className="text-sm font-bold"
+                style={{ color: prefs.useMetric ? ink : `${ink}28` }}
+              >
+                Metric
+              </span>
             </div>
           </div>
         </section>
 
         {/* Surf Preferences */}
         <section className="mb-8">
-          <h3 className="text-lg font-semibold text-cyan-400 mb-4">Surf Preferences</h3>
+          <h3
+            className="text-xs font-black uppercase tracking-[0.2em] mb-4"
+            style={{ color: `${ink}45` }}
+          >
+            Surf Preferences
+          </h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm text-slate-400 mb-1">
+              <label
+                className="block text-xs font-bold uppercase tracking-wide mb-1"
+                style={{ color: `${ink}45` }}
+              >
                 Min Wave Height ({prefs.useMetric ? 'm' : 'ft'})
               </label>
               <input
@@ -125,11 +257,17 @@ export default function SettingsModal({
                   const v = parseFloat(e.target.value) || 0
                   setPrefs({ ...prefs, minWaveHeight: prefs.useMetric ? +(v * 3.28084).toFixed(2) : v })
                 }}
-                className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-cyan-500"
+                className={inputClass}
+                style={inputStyle}
+                onFocus={(e) => Object.assign((e.target as HTMLInputElement).style, inputFocusStyle)}
+                onBlur={(e) => Object.assign((e.target as HTMLInputElement).style, { borderColor: `${ink}28` })}
               />
             </div>
             <div>
-              <label className="block text-sm text-slate-400 mb-1">
+              <label
+                className="block text-xs font-bold uppercase tracking-wide mb-1"
+                style={{ color: `${ink}45` }}
+              >
                 Max Wave Height ({prefs.useMetric ? 'm' : 'ft'})
               </label>
               <input
@@ -142,11 +280,19 @@ export default function SettingsModal({
                   const v = parseFloat(e.target.value) || 0
                   setPrefs({ ...prefs, maxWaveHeight: prefs.useMetric ? +(v * 3.28084).toFixed(2) : v })
                 }}
-                className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-cyan-500"
+                className={inputClass}
+                style={inputStyle}
+                onFocus={(e) => Object.assign((e.target as HTMLInputElement).style, inputFocusStyle)}
+                onBlur={(e) => Object.assign((e.target as HTMLInputElement).style, { borderColor: `${ink}28` })}
               />
             </div>
-            <div>
-              <label className="block text-sm text-slate-400 mb-1">Min Wave Period (sec)</label>
+            {/* <div>
+              <label
+                className="block text-xs font-bold uppercase tracking-wide mb-1"
+                style={{ color: `${ink}45` }}
+              >
+                Min Wave Period (sec)
+              </label>
               <input
                 type="number"
                 min={0}
@@ -154,55 +300,136 @@ export default function SettingsModal({
                 step={1}
                 value={prefs.minWavePeriod}
                 onChange={(e) => setPrefs({ ...prefs, minWavePeriod: parseInt(e.target.value) || 0 })}
-                className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-cyan-500"
+                className={inputClass}
+                style={inputStyle}
+                onFocus={(e) => Object.assign((e.target as HTMLInputElement).style, inputFocusStyle)}
+                onBlur={(e) => Object.assign((e.target as HTMLInputElement).style, { borderColor: `${ink}28` })}
               />
-            </div>
+            </div> */}
             <div>
-              <label className="block text-sm text-slate-400 mb-1">
-                Max Wind Speed ({prefs.useMetric ? 'km/h' : 'mph'})
+              <label
+                className="block text-xs font-bold uppercase tracking-wide mb-1"
+                style={{ color: `${ink}45` }}
+              >
+                Max Onshore Wind ({prefs.useMetric ? 'km/h' : 'mph'})
               </label>
               <input
                 type="number"
                 min={0}
                 max={prefs.useMetric ? 160 : 100}
                 step={1}
-                value={prefs.useMetric ? +(prefs.maxWindSpeed / 0.621371).toFixed(0) : prefs.maxWindSpeed}
+                value={prefs.useMetric ? +((prefs.maxWindSpeedOnshore ?? 20) / 0.621371).toFixed(0) : (prefs.maxWindSpeedOnshore ?? 20)}
                 onChange={(e) => {
                   const v = parseInt(e.target.value) || 0
-                  setPrefs({ ...prefs, maxWindSpeed: prefs.useMetric ? +(v * 0.621371).toFixed(2) : v })
+                  setPrefs({ ...prefs, maxWindSpeedOnshore: prefs.useMetric ? +(v * 0.621371).toFixed(2) : v })
                 }}
-                className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-cyan-500"
+                className={inputClass}
+                style={inputStyle}
+                onFocus={(e) => Object.assign((e.target as HTMLInputElement).style, inputFocusStyle)}
+                onBlur={(e) => Object.assign((e.target as HTMLInputElement).style, { borderColor: `${ink}28` })}
               />
             </div>
+            <div>
+              <label
+                className="block text-xs font-bold uppercase tracking-wide mb-1"
+                style={{ color: `${ink}45` }}
+              >
+                Max Offshore Wind ({prefs.useMetric ? 'km/h' : 'mph'})
+              </label>
+              <input
+                type="number"
+                min={0}
+                max={prefs.useMetric ? 160 : 100}
+                step={1}
+                value={prefs.useMetric ? +((prefs.maxWindSpeedOffshore ?? 15) / 0.621371).toFixed(0) : (prefs.maxWindSpeedOffshore ?? 15)}
+                onChange={(e) => {
+                  const v = parseInt(e.target.value) || 0
+                  setPrefs({ ...prefs, maxWindSpeedOffshore: prefs.useMetric ? +(v * 0.621371).toFixed(2) : v })
+                }}
+                className={inputClass}
+                style={inputStyle}
+                onFocus={(e) => Object.assign((e.target as HTMLInputElement).style, inputFocusStyle)}
+                onBlur={(e) => Object.assign((e.target as HTMLInputElement).style, { borderColor: `${ink}28` })}
+              />
+            </div>
+            <div className="col-span-2">
+              <label
+                className="block text-xs font-bold uppercase tracking-wide mb-1"
+                style={{ color: `${ink}45` }}
+              >
+                Min Wave Period (sec)
+              </label>
+              <input
+                type="number"
+                min={0}
+                max={30}
+                step={1}
+                value={prefs.minWavePeriod}
+                onChange={(e) => setPrefs({ ...prefs, minWavePeriod: parseInt(e.target.value) || 0 })}
+                className={inputClass}
+                style={inputStyle}
+                onFocus={(e) => Object.assign((e.target as HTMLInputElement).style, inputFocusStyle)}
+                onBlur={(e) => Object.assign((e.target as HTMLInputElement).style, { borderColor: `${ink}28` })}
+              />
+            </div>
+            {/* <div className="col-span-2">
+              <label
+                className="block text-xs font-bold uppercase tracking-wide mb-1"
+                style={{ color: `${ink}45` }}
+              >
+                Max Onshore Wind ({prefs.useMetric ? 'km/h' : 'mph'})
+              </label>
+              <input
+                type="number"
+                min={0}
+                max={prefs.useMetric ? 160 : 100}
+                step={1}
+                value={prefs.useMetric ? +((prefs.maxWindSpeedOnshore ?? 20) / 0.621371).toFixed(0) : (prefs.maxWindSpeedOnshore ?? 20)}
+                onChange={(e) => {
+                  const v = parseInt(e.target.value) || 0
+                  setPrefs({ ...prefs, maxWindSpeedOnshore: prefs.useMetric ? +(v * 0.621371).toFixed(2) : v })
+                }}
+                className={inputClass}
+                style={inputStyle}
+                onFocus={(e) => Object.assign((e.target as HTMLInputElement).style, inputFocusStyle)}
+                onBlur={(e) => Object.assign((e.target as HTMLInputElement).style, { borderColor: `${ink}28` })}
+              />
+            </div> */}
           </div>
         </section>
 
         {/* Saved Locations */}
         <section className="mb-8">
-          <h3 className="text-lg font-semibold text-cyan-400 mb-4">
+          <h3
+            className="text-xs font-black uppercase tracking-[0.2em] mb-4"
+            style={{ color: `${ink}45` }}
+          >
             Saved Locations ({locs.length}/3)
           </h3>
           {locs.length === 0 && (
-            <p className="text-slate-500 text-sm mb-3">No locations saved yet. Click the map below to add one.</p>
+            <p className="text-sm mb-3" style={{ color: `${ink}38` }}>
+              No locations saved yet. Click the map below to add one.
+            </p>
           )}
           <div className="space-y-2 mb-4">
             {locs.map((loc) => (
               <div
                 key={loc.id}
-                className="flex items-center justify-between bg-slate-800 border border-slate-700 rounded-lg px-4 py-3"
+                className="flex items-center justify-between px-4 py-3"
+                style={{ border: `1px solid ${ink}22` }}
               >
                 <div className="flex items-center gap-3">
-                  <MapPin className="w-4 h-4 text-cyan-400" />
+                  <MapPin className="w-4 h-4 shrink-0" style={{ color: `${ink}40` }} />
                   <div>
-                    <p className="text-white font-medium">{loc.name}</p>
-                    <p className="text-slate-400 text-xs">
-                      {loc.lat.toFixed(4)}, {loc.lng.toFixed(4)} · Facing {loc.beachFacing}
+                    <p className="font-bold">{loc.name}</p>
+                    <p className="text-xs" style={{ color: `${ink}38` }}>
+                      {loc.lat.toFixed(4)}, {loc.lng.toFixed(4)} · Faces {loc.beachFacing}
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={() => handleDeleteLocation(loc.id)}
-                  className="p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-900/20 transition-colors"
+                  className="p-1.5 transition-opacity opacity-30 hover:opacity-100"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -210,10 +437,9 @@ export default function SettingsModal({
             ))}
           </div>
 
-          {/* Add new location */}
           {locs.length < 3 && (
-            <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
-              <p className="text-sm text-slate-400 mb-3">
+            <div className="p-4" style={{ border: `1px solid ${ink}22` }}>
+              <p className="text-sm mb-3" style={{ color: `${ink}40` }}>
                 Click on the map to select a location, then fill in the details below.
               </p>
               <MapPicker
@@ -225,29 +451,43 @@ export default function SettingsModal({
                 selectedLng={pendingLng}
               />
               {pendingLat != null && (
-                <div className="mt-3 p-3 bg-slate-700/50 rounded-lg">
-                  <p className="text-xs text-cyan-400 mb-2">
+                <div className="mt-3 p-3" style={{ border: `1px solid ${ink}18` }}>
+                  <p className="text-xs" style={{ color: `${ink}50` }}>
                     Selected: {pendingLat.toFixed(4)}, {pendingLng!.toFixed(4)}
                   </p>
                 </div>
               )}
               <div className="grid grid-cols-3 gap-3 mt-3">
                 <div className="col-span-2">
-                  <label className="block text-xs text-slate-400 mb-1">Location Name</label>
+                  <label
+                    className="block text-xs font-bold uppercase tracking-wide mb-1"
+                    style={{ color: `${ink}45` }}
+                  >
+                    Location Name
+                  </label>
                   <input
                     type="text"
                     placeholder="e.g. North Beach"
                     value={pendingName}
                     onChange={(e) => setPendingName(e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-cyan-500"
+                    className="w-full px-3 py-2 text-sm focus:outline-none"
+                    style={{ ...inputStyle }}
+                    onFocus={(e) => Object.assign((e.target as HTMLInputElement).style, inputFocusStyle)}
+                    onBlur={(e) => Object.assign((e.target as HTMLInputElement).style, { borderColor: `${ink}28` })}
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Beach Faces</label>
+                  <label
+                    className="block text-xs font-bold uppercase tracking-wide mb-1"
+                    style={{ color: `${ink}45` }}
+                  >
+                    Beach Faces
+                  </label>
                   <select
                     value={pendingFacing}
                     onChange={(e) => setPendingFacing(e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-cyan-500"
+                    className="w-full px-3 py-2 text-sm focus:outline-none"
+                    style={{ ...inputStyle, backgroundColor: paper }}
                   >
                     {BEACH_FACING_OPTIONS.map((dir) => (
                       <option key={dir} value={dir}>{dir}</option>
@@ -258,7 +498,18 @@ export default function SettingsModal({
               <button
                 onClick={handleAddLocation}
                 disabled={!pendingLat || !pendingName.trim()}
-                className="mt-3 w-full flex items-center justify-center gap-2 bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-semibold rounded-lg px-4 py-2 transition-colors"
+                className="mt-3 w-full flex items-center justify-center gap-2 font-black uppercase tracking-widest px-4 py-2.5 transition-colors disabled:opacity-25 disabled:cursor-not-allowed"
+                style={{ border: `2px solid ${ink}`, color: ink, backgroundColor: 'transparent' }}
+                onMouseEnter={(e) => {
+                  if (!(e.currentTarget as HTMLButtonElement).disabled) {
+                    ;(e.currentTarget as HTMLButtonElement).style.backgroundColor = ink
+                    ;(e.currentTarget as HTMLButtonElement).style.color = paper
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  ;(e.currentTarget as HTMLButtonElement).style.backgroundColor = 'transparent'
+                  ;(e.currentTarget as HTMLButtonElement).style.color = ink
+                }}
               >
                 <Plus className="w-4 h-4" />
                 Add Location
@@ -267,10 +518,11 @@ export default function SettingsModal({
           )}
         </section>
 
-        {/* Save Button */}
+        {/* Save */}
         <button
           onClick={handleSaveAll}
-          className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-xl py-3 transition-colors text-lg"
+          className="w-full font-black uppercase tracking-widest py-4 text-base transition-opacity hover:opacity-80"
+          style={{ backgroundColor: ink, color: paper }}
         >
           Save & Close
         </button>

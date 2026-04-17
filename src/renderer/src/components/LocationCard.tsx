@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Location, SurfConditions, ConditionEval } from '../types'
 import {
   metersToFeet,
@@ -15,9 +14,7 @@ import {
   AlertCircle,
   RefreshCw,
   ArrowUp,
-  ArrowDown,
-  ChevronDown,
-  ChevronUp
+  ArrowDown
 } from 'lucide-react'
 
 interface LocationCardProps {
@@ -26,46 +23,35 @@ interface LocationCardProps {
   eval: ConditionEval | null
   loading: boolean
   useMetric: boolean
+  darkMode: boolean
 }
 
-function LED({ ok, unknown = false }: { ok: boolean; unknown?: boolean }) {
+function theme(dark: boolean) {
+  const ink   = dark ? '#ece8df' : '#0a0a0a'
+  const paper = dark ? '#0f0f0f' : '#f5f0e8'
+  return { ink, paper }
+}
+
+function Indicator({ ok, unknown = false, ink }: { ok: boolean; unknown?: boolean; ink: string }) {
+  const base = 'w-6 h-6 rounded-full inline-block shrink-0 border-2'
   if (unknown)
-    return <span className="w-2.5 h-2.5 rounded-full bg-white/20 inline-block" />
+    return <span className={base} style={{ borderColor: `${ink}30` }} />
   return (
     <span
-      className={`w-2.5 h-2.5 rounded-full inline-block shadow-sm ${
-        ok ? 'bg-green-400 shadow-green-400/60' : 'bg-red-500 shadow-red-500/60'
-      }`}
+      className={base}
+      style={{
+        borderColor: ink,
+        backgroundColor: ok ? ink : 'transparent'
+      }}
     />
   )
 }
 
-const stokeCard: Record<string, string> = {
-  pumping:  'bg-white/10 border-cyan-400/50',
-  decent:   'bg-white/10 border-amber-400/40',
-  poor:     'bg-white/8  border-white/15',
-  unknown:  'bg-white/8  border-white/10'
-}
-
-const stokeBadge: Record<string, string> = {
-  pumping: 'bg-cyan-500/80 text-white',
-  decent:  'bg-amber-500/80 text-white',
-  poor:    'bg-white/20 text-white/70',
-  unknown: 'bg-white/10 text-white/40'
-}
-
-const stokeBadgeLarge: Record<string, string> = {
-  pumping: 'bg-cyan-500/90 text-white shadow-lg shadow-cyan-500/40',
-  decent:  'bg-amber-500/90 text-white shadow-lg shadow-amber-500/40',
-  poor:    'bg-white/25 text-white/80',
-  unknown: 'bg-white/10 text-white/40'
-}
-
-const tideArrow: Record<string, string> = {
-  High:    'text-blue-300',
-  Falling: 'text-amber-300',
-  Low:     'text-red-400',
-  Rising:  'text-green-400'
+const stokeLabel: Record<string, string> = {
+  pumping: 'PUMPING',
+  decent:  'DECENT',
+  poor:    'POOR / BLOWN',
+  unknown: '· · ·'
 }
 
 export default function LocationCard({
@@ -73,25 +59,28 @@ export default function LocationCard({
   conditions,
   eval: condEval,
   loading,
-  useMetric
+  useMetric,
+  darkMode
 }: LocationCardProps) {
+  const { ink, paper } = theme(darkMode)
   const stoke = condEval?.overallStoke ?? 'unknown'
-  const [collapsed, setCollapsed] = useState(false)
 
   if (!loading && (!conditions || conditions.error)) {
     return (
-      <div className="rounded-2xl border border-red-400/20 bg-white/8 p-6 flex items-center justify-center min-h-[320px] backdrop-blur-sm">
-        <div className="flex flex-col items-center gap-3">
-          <AlertCircle className="w-8 h-8 text-red-400" />
-          <p className="font-semibold text-white">{location.name}</p>
-          <p className="text-sm text-red-300">{conditions?.error ?? 'No data available'}</p>
-          <p className="text-xs text-white/40">Facing: {location.beachFacing}</p>
+      <div className="flex-1 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-5 text-center">
+          <AlertCircle className="w-14 h-14" style={{ color: `${ink}40` }} />
+          <p className="text-4xl font-black tracking-tight uppercase" style={{ color: ink }}>
+            {location.name}
+          </p>
+          <p className="text-lg" style={{ color: `${ink}50` }}>
+            {conditions?.error ?? 'No data available'}
+          </p>
         </div>
       </div>
     )
   }
 
-  // Wave height
   const waveHeightRaw = conditions?.waveHeight != null ? metersToFeet(conditions.waveHeight) : null
   const waveHeightDisplay = waveHeightRaw != null
     ? useMetric
@@ -99,7 +88,6 @@ export default function LocationCard({
       : `${waveHeightRaw.toFixed(1)} ft`
     : '--'
 
-  // Wind speed
   const windMph = conditions?.windSpeed != null ? kmhToMph(conditions.windSpeed) : null
   const windDisplay = windMph != null
     ? useMetric
@@ -107,7 +95,6 @@ export default function LocationCard({
       : `${windMph.toFixed(0)} mph`
     : '--'
 
-  // Water temp
   const waterF = conditions?.waterTemp != null ? celsiusToF(conditions.waterTemp) : null
   const waterDisplay = waterF != null
     ? useMetric
@@ -115,193 +102,165 @@ export default function LocationCard({
       : `${waterF.toFixed(0)}°F`
     : null
 
-  const windCompass =
-    conditions?.windDirection != null ? degreesToCompass(conditions.windDirection) : '--'
-  const waveCompass =
-    conditions?.waveDirection != null ? degreesToCompass(conditions.waveDirection) : '--'
+  const windCompass = conditions?.windDirection != null ? degreesToCompass(conditions.windDirection) : '--'
+  const waveCompass = conditions?.waveDirection != null ? degreesToCompass(conditions.waveDirection) : '--'
   const fetchTime = conditions?.fetchedAt
-    ? new Date(conditions.fetchedAt).toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit'
-      })
+    ? new Date(conditions.fetchedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     : null
 
   const tide = conditions?.tide
-  const tideColor = tide ? tideArrow[tide.tideLabel] : 'text-white/40'
 
-  if (collapsed) {
-    return (
-      <button
-        onClick={() => setCollapsed(false)}
-        className={`rounded-2xl border ${stokeCard[stoke]} p-6 flex flex-col items-center justify-center gap-4 backdrop-blur-md transition-all duration-300 hover:brightness-110 cursor-pointer w-full`}
-      >
-        <h2 className="text-3xl font-extrabold text-white drop-shadow text-center leading-tight">
-          {location.name}
-        </h2>
-        <span
-          className={`text-xl font-bold px-6 py-2 rounded-full uppercase tracking-widest backdrop-blur-sm ${stokeBadgeLarge[stoke]}`}
-        >
-          {stoke === 'pumping'
-            ? '🏄 Pumping'
-            : stoke === 'decent'
-            ? 'Decent'
-            : stoke === 'poor'
-            ? 'Flat / Blown'
-            : '...'}
-        </span>
-        <ChevronDown className="w-5 h-5 text-white/30 mt-1" />
-      </button>
-    )
-  }
+  // Stoke badge styling
+  const badgeStyle: React.CSSProperties =
+    stoke === 'pumping'
+      ? { backgroundColor: ink, color: paper, borderColor: ink }
+      : stoke === 'decent'
+      ? { backgroundColor: `${ink}14`, color: ink, borderColor: ink }
+      : { backgroundColor: 'transparent', color: `${ink}45`, borderColor: `${ink}30` }
 
   return (
-    <div
-      className={`rounded-2xl border ${stokeCard[stoke]} p-6 min-h-[320px] flex flex-col justify-between backdrop-blur-md transition-all duration-500`}
-    >
-      {/* Header */}
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <h2 className="text-xl font-bold text-white drop-shadow">{location.name}</h2>
-          <p className="text-xs text-white/40 mt-0.5">Beach faces {location.beachFacing}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <span
-            className={`text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider backdrop-blur-sm ${stokeBadge[stoke]}`}
-          >
-            {stoke === 'pumping'
-              ? '🏄 Pumping'
-              : stoke === 'decent'
-              ? 'Decent'
-              : stoke === 'poor'
-              ? 'Flat/Blown'
-              : '...'}
+    <div className="h-full flex flex-col overflow-hidden" style={{ color: ink }}>
+      {/* Location name + stoke */}
+      <div
+        className="text-center pt-10 pb-8 px-8 shrink-0"
+        style={{ borderBottom: `2px solid ${ink}12` }}
+      >
+        <h1 className="text-7xl font-black tracking-tight uppercase mb-2 leading-none">
+          {location.name}
+        </h1>
+        <p className="text-sm uppercase tracking-[0.2em] mb-7" style={{ color: `${ink}40` }}>
+          Beach faces {location.beachFacing}
+        </p>
+        <div
+          className="inline-block border-4 px-14 py-4"
+          style={badgeStyle}
+        >
+          <span className="text-3xl font-black tracking-[0.15em] uppercase">
+            {stokeLabel[stoke]}
           </span>
-          <button
-            onClick={() => setCollapsed(true)}
-            className="p-1 rounded-lg text-white/30 hover:text-white/70 hover:bg-white/10 transition-all"
-            aria-label="Collapse card"
-          >
-            <ChevronUp className="w-4 h-4" />
-          </button>
         </div>
       </div>
 
-      {/* Conditions */}
-      <div className="space-y-2.5 flex-1">
+      {/* Conditions rows */}
+      <div className="flex-1 overflow-hidden flex flex-col justify-center px-20 py-2">
         {/* Wave Height */}
-        <div className="flex items-center justify-between bg-black/20 rounded-xl px-4 py-2.5">
-          <div className="flex items-center gap-2">
-            <Waves className="w-4 h-4 text-cyan-300" />
-            <span className="text-sm text-white/70">Wave Height</span>
+        <div
+          className="flex items-center justify-between py-6"
+          style={{ borderBottom: `1px solid ${ink}12` }}
+        >
+          <div className="flex items-center gap-5">
+            <Waves className="w-8 h-8 shrink-0" style={{ color: `${ink}45` }} />
+            <span className="text-2xl font-semibold">Wave Height</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-white font-semibold">{waveHeightDisplay}</span>
-            <LED ok={condEval?.waveHeightOk ?? false} unknown={condEval === null} />
+          <div className="flex items-center gap-5">
+            <span className="text-3xl font-black">{waveHeightDisplay}</span>
+            <Indicator ok={condEval?.waveHeightOk ?? false} unknown={condEval === null} ink={ink} />
           </div>
         </div>
 
         {/* Wave Period */}
-        <div className="flex items-center justify-between bg-black/20 rounded-xl px-4 py-2.5">
-          <div className="flex items-center gap-2">
-            <Waves className="w-4 h-4 text-blue-300" />
-            <span className="text-sm text-white/70">Wave Period</span>
+        <div
+          className="flex items-center justify-between py-6"
+          style={{ borderBottom: `1px solid ${ink}12` }}
+        >
+          <div className="flex items-center gap-5">
+            <Waves className="w-8 h-8 shrink-0" style={{ color: `${ink}45` }} />
+            <span className="text-2xl font-semibold">Wave Period</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-white font-semibold">
-              {conditions?.wavePeriod != null
-                ? `${conditions.wavePeriod.toFixed(0)}s`
-                : '--'}{' '}
-              <span className="text-white/40 text-xs">{waveCompass}</span>
+          <div className="flex items-center gap-5">
+            <span className="text-3xl font-black">
+              {conditions?.wavePeriod != null ? `${conditions.wavePeriod.toFixed(0)}s` : '--'}
+              <span className="text-lg font-normal ml-2" style={{ color: `${ink}40` }}>{waveCompass}</span>
             </span>
-            <LED ok={condEval?.wavePeriodOk ?? false} unknown={condEval === null} />
+            <Indicator ok={condEval?.wavePeriodOk ?? false} unknown={condEval === null} ink={ink} />
           </div>
         </div>
 
-        {/* Wind Speed */}
-        <div className="flex items-center justify-between bg-black/20 rounded-xl px-4 py-2.5">
-          <div className="flex items-center gap-2">
-            <Wind className="w-4 h-4 text-emerald-300" />
-            <span className="text-sm text-white/70">Wind Speed</span>
+        {/* Wind */}
+        <div
+          className="flex items-center justify-between py-6"
+          style={{ borderBottom: `1px solid ${ink}12` }}
+        >
+          <div className="flex items-center gap-5">
+            <Wind className="w-8 h-8 shrink-0" style={{ color: `${ink}45` }} />
+            <span className="text-2xl font-semibold">Wind</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-white font-semibold">
-              {windDisplay}{' '}
-              <span className="text-white/40 text-xs">{windCompass}</span>
+          <div className="flex items-center gap-5">
+            <span className="text-3xl font-black">
+              <span className="text-lg font-normal mr-2" style={{ color: `${ink}40` }}>
+                {condEval ? (condEval.windIsOffshore ? 'Offshore' : 'Onshore') : ''}
+              </span>
+              <span className="text-lg font-normal mr-3" style={{ color: `${ink}40` }}>{windCompass}</span>
+              {windDisplay}
             </span>
-            <LED ok={condEval?.windSpeedOk ?? false} unknown={condEval === null} />
-          </div>
-        </div>
-
-        {/* Offshore Wind */}
-        <div className="flex items-center justify-between bg-black/20 rounded-xl px-4 py-2.5">
-          <div className="flex items-center gap-2">
-            <Wind className="w-4 h-4 text-violet-300" />
-            <span className="text-sm text-white/70">Offshore Wind</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-white font-semibold text-sm">
-              {condEval?.windDirectionOk ? 'Yes' : 'No'}
-            </span>
-            <LED
-              ok={condEval?.windDirectionOk ?? false}
-              unknown={condEval === null}
-            />
+            <Indicator ok={condEval?.windOk ?? false} unknown={condEval === null} ink={ink} />
           </div>
         </div>
 
         {/* Tide */}
-        <div className="flex items-center justify-between bg-black/20 rounded-xl px-4 py-2.5">
-          <div className="flex items-center gap-2">
+        <div
+          className="flex items-center justify-between py-6"
+          style={{ borderBottom: waterDisplay != null ? `1px solid ${ink}12` : undefined }}
+        >
+          <div className="flex items-center gap-5">
             {tide?.rising ? (
-              <ArrowUp className="w-4 h-4 text-green-400" />
+              <ArrowUp className="w-8 h-8 shrink-0" style={{ color: `${ink}45` }} />
             ) : (
-              <ArrowDown className="w-4 h-4 text-amber-400" />
+              <ArrowDown className="w-8 h-8 shrink-0" style={{ color: `${ink}45` }} />
             )}
-            <span className="text-sm text-white/70">
-              Tide <span className="text-white/30 text-xs">(est.)</span>
+            <span className="text-2xl font-semibold">
+              Tide{' '}
+              <span className="text-base font-normal" style={{ color: `${ink}30` }}>(est.)</span>
             </span>
           </div>
           {tide ? (
-            <div className="flex items-center gap-2 text-right">
-              <div>
-                <span className={`font-semibold text-sm ${tideColor}`}>
-                  {tide.tideLabel}
-                </span>
-                <span className="text-white/40 text-xs ml-1.5">
+            <div className="flex items-center gap-4">
+              <div className="flex flex-col items-end gap-1">
+                <span className="text-lg" style={{ color: `${ink}40` }}>
                   {tide.nextExtremeIsHigh ? 'High' : 'Low'} in{' '}
                   {formatTideCountdown(tide.minutesToNextExtreme)}
                 </span>
+                {tide.isSpring && (
+                  <span
+                    className="text-xs border px-2 py-0.5 uppercase tracking-wider"
+                    style={{ borderColor: `${ink}35`, color: `${ink}60` }}
+                  >
+                    Spring
+                  </span>
+                )}
               </div>
-              {tide.isSpring && (
-                <span className="text-xs bg-blue-500/30 text-blue-200 px-1.5 py-0.5 rounded-full">
-                  Spring
-                </span>
-              )}
+              <span className="text-3xl font-black">{tide.tideLabel}</span>
             </div>
           ) : (
-            <span className="text-white/30 text-sm">--</span>
+            <span className="text-3xl font-black" style={{ color: `${ink}20` }}>--</span>
           )}
         </div>
 
         {/* Water Temp */}
         {waterDisplay != null && (
-          <div className="flex items-center justify-between bg-black/20 rounded-xl px-4 py-2.5">
-            <div className="flex items-center gap-2">
-              <Thermometer className="w-4 h-4 text-orange-300" />
-              <span className="text-sm text-white/70">Water Temp</span>
+          <div className="flex items-center justify-between py-6">
+            <div className="flex items-center gap-5">
+              <Thermometer className="w-8 h-8 shrink-0" style={{ color: `${ink}45` }} />
+              <span className="text-2xl font-semibold">Water Temp</span>
             </div>
-            <span className="text-white font-semibold">{waterDisplay}</span>
+            <span className="text-3xl font-black">{waterDisplay}</span>
           </div>
         )}
       </div>
 
       {/* Footer */}
-      <div className="flex items-center gap-1 mt-4 text-xs text-white/25">
+      <div
+        className="flex items-center justify-center gap-2 py-3 text-sm shrink-0"
+        style={{ color: `${ink}25` }}
+      >
         {loading ? (
-          <RefreshCw className="w-3 h-3 animate-spin" />
+          <>
+            <RefreshCw className="w-4 h-4 animate-spin" />
+            <span>Fetching conditions…</span>
+          </>
         ) : fetchTime ? (
           <>
-            <Clock className="w-3 h-3" />
+            <Clock className="w-4 h-4" />
             <span>Updated {fetchTime}</span>
           </>
         ) : null}

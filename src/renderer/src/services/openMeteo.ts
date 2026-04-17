@@ -126,8 +126,8 @@ export function evaluateConditions(
     return {
       waveHeightOk: false,
       wavePeriodOk: false,
-      windSpeedOk: false,
-      windDirectionOk: false,
+      windOk: false,
+      windIsOffshore: false,
       overallStoke: 'unknown'
     }
   }
@@ -141,21 +141,26 @@ export function evaluateConditions(
   const wavePeriodOk =
     conditions.wavePeriod !== null && conditions.wavePeriod >= prefs.minWavePeriod
 
-  const windSpeedOk = windMph !== null && windMph <= prefs.maxWindSpeed
-
-  const windDirectionOk =
+  const windIsOffshore =
     conditions.windDirection !== null
       ? isOffshoreWind(conditions.windDirection, beachFacing)
       : false
 
-  const passCount = [waveHeightOk, wavePeriodOk, windSpeedOk, windDirectionOk].filter(Boolean).length
+  // Use the speed limit that matches the current wind direction
+  const maxSpeed = windIsOffshore
+    ? (prefs.maxWindSpeedOffshore ?? 15)
+    : (prefs.maxWindSpeedOnshore ?? 20)
+
+  const windOk = windMph !== null && windMph <= maxSpeed
+
+  const passCount = [waveHeightOk, wavePeriodOk, windOk].filter(Boolean).length
 
   let overallStoke: ConditionEval['overallStoke']
-  if (passCount === 4) overallStoke = 'pumping'
+  if (passCount === 3) overallStoke = 'pumping'
   else if (passCount >= 2) overallStoke = 'decent'
   else overallStoke = 'poor'
 
-  return { waveHeightOk, wavePeriodOk, windSpeedOk, windDirectionOk, overallStoke }
+  return { waveHeightOk, wavePeriodOk, windOk, windIsOffshore, overallStoke }
 }
 
 // Convert meteorological wind direction degrees to a compass label
