@@ -6,12 +6,17 @@ export interface Location {
   beachFacing: string // e.g. "N", "NE", "E", "SE", "S", "SW", "W", "NW"
 }
 
+export type AppTheme = 'simple-light' | 'simple-dark' | 'classic'
+
 export interface SurfPreferences {
-  minWaveHeight: number  // ft (internal storage always imperial)
-  maxWaveHeight: number  // ft
-  minWavePeriod: number  // seconds
-  maxWindSpeed: number   // mph
+  minWaveHeight: number          // ft (internal storage always imperial)
+  maxWaveHeight: number          // ft
+  minWavePeriod: number          // seconds
+  maxWindSpeedOffshore: number   // mph — applied when wind is blowing offshore
+  maxWindSpeedOnshore: number    // mph — applied when wind is blowing onshore
   useMetric: boolean
+  theme: AppTheme
+  slideshowEnabled: boolean
 }
 
 export interface TideInfo {
@@ -38,8 +43,8 @@ export interface SurfConditions {
 export interface ConditionEval {
   waveHeightOk: boolean
   wavePeriodOk: boolean
-  windSpeedOk: boolean
-  windDirectionOk: boolean // offshore check
+  windOk: boolean         // speed ok given current direction
+  windIsOffshore: boolean // true = offshore, false = onshore (for display)
   overallStoke: 'pumping' | 'decent' | 'poor' | 'unknown'
 }
 
