@@ -47,17 +47,24 @@ const stokeCard: Record<string, string> = {
   unknown:  'bg-white/8  border-white/10'
 }
 
+const stokeBadgeStyle: Record<string, { backgroundColor?: string; color?: string }> = {
+  pumping: { backgroundColor: '#d2f8d2', color: '#1a1a1a' },
+  decent:  { backgroundColor: '#f5f5dc', color: '#1a1a1a' },
+  poor:    { backgroundColor: '#ff9a9a', color: '#1a1a1a' },
+  unknown: {}
+}
+
 const stokeBadge: Record<string, string> = {
-  pumping: 'bg-cyan-500/80 text-white',
-  decent:  'bg-amber-500/80 text-white',
-  poor:    'bg-white/20 text-white/70',
+  pumping: '',
+  decent:  '',
+  poor:    '',
   unknown: 'bg-white/10 text-white/40'
 }
 
 const stokeBadgeLarge: Record<string, string> = {
-  pumping: 'bg-cyan-500/90 text-white shadow-lg shadow-cyan-500/40',
-  decent:  'bg-amber-500/90 text-white shadow-lg shadow-amber-500/40',
-  poor:    'bg-white/25 text-white/80',
+  pumping: '',
+  decent:  '',
+  poor:    '',
   unknown: 'bg-white/10 text-white/40'
 }
 
@@ -140,6 +147,7 @@ export default function LocationCard({
         </h2>
         <span
           className={`text-xl font-bold px-6 py-2 rounded-full uppercase tracking-widest backdrop-blur-sm ${stokeBadgeLarge[stoke]}`}
+          style={stokeBadgeStyle[stoke]}
         >
           {stoke === 'pumping'
             ? '🏄 Pumping'
@@ -167,6 +175,7 @@ export default function LocationCard({
         <div className="flex items-center gap-2">
           <span
             className={`text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider backdrop-blur-sm ${stokeBadge[stoke]}`}
+            style={stokeBadgeStyle[stoke]}
           >
             {stoke === 'pumping'
               ? '🏄 Pumping'
@@ -191,8 +200,8 @@ export default function LocationCard({
         {/* Wave Height */}
         <div className="flex items-center justify-between bg-black/20 rounded-xl px-4 py-2.5">
           <div className="flex items-center gap-2">
-            <Waves className="w-4 h-4 text-cyan-300" />
-            <span className="text-sm text-white/70">Wave Height</span>
+            <Waves className="w-12 h-12 text-cyan-300" />
+            <span className="text-xs text-white/70">Wave Height</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-white font-semibold">{waveHeightDisplay}</span>
@@ -203,8 +212,8 @@ export default function LocationCard({
         {/* Wave Period */}
         <div className="flex items-center justify-between bg-black/20 rounded-xl px-4 py-2.5">
           <div className="flex items-center gap-2">
-            <Waves className="w-4 h-4 text-blue-300" />
-            <span className="text-sm text-white/70">Wave Period</span>
+            <Waves className="w-12 h-12 text-blue-300" />
+            <span className="text-xs text-white/70">Wave Period</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-white font-semibold">
@@ -220,8 +229,8 @@ export default function LocationCard({
         {/* Wind Speed */}
         <div className="flex items-center justify-between bg-black/20 rounded-xl px-4 py-2.5">
           <div className="flex items-center gap-2">
-            <Wind className="w-4 h-4 text-emerald-300" />
-            <span className="text-sm text-white/70">Wind Speed</span>
+            <Wind className="w-12 h-12 text-emerald-300" />
+            <span className="text-xs text-white/70">Wind Speed</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-white font-semibold">
@@ -235,8 +244,8 @@ export default function LocationCard({
         {/* Offshore Wind */}
         <div className="flex items-center justify-between bg-black/20 rounded-xl px-4 py-2.5">
           <div className="flex items-center gap-2">
-            <Wind className="w-4 h-4 text-violet-300" />
-            <span className="text-sm text-white/70">Offshore Wind</span>
+            <Wind className="w-12 h-12 text-violet-300" />
+            <span className="text-xs text-white/70">Offshore Wind</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-white font-semibold text-sm">
@@ -253,11 +262,11 @@ export default function LocationCard({
         <div className="flex items-center justify-between bg-black/20 rounded-xl px-4 py-2.5">
           <div className="flex items-center gap-2">
             {tide?.rising ? (
-              <ArrowUp className="w-4 h-4 text-green-400" />
+              <ArrowUp className="w-12 h-12 text-green-400" />
             ) : (
-              <ArrowDown className="w-4 h-4 text-amber-400" />
+              <ArrowDown className="w-12 h-12 text-amber-400" />
             )}
-            <span className="text-sm text-white/70">
+            <span className="text-xs text-white/70">
               Tide <span className="text-white/30 text-xs">(est.)</span>
             </span>
           </div>
@@ -287,8 +296,8 @@ export default function LocationCard({
         {waterDisplay != null && (
           <div className="flex items-center justify-between bg-black/20 rounded-xl px-4 py-2.5">
             <div className="flex items-center gap-2">
-              <Thermometer className="w-4 h-4 text-orange-300" />
-              <span className="text-sm text-white/70">Water Temp</span>
+              <Thermometer className="w-12 h-12 text-orange-300" />
+              <span className="text-xs text-white/70">Water Temp</span>
             </div>
             <span className="text-white font-semibold">{waterDisplay}</span>
           </div>

@@ -109,8 +109,8 @@ export default function App() {
       {/* Header */}
       <header className="relative z-10 flex items-center justify-between px-8 py-5 border-b border-white/10">
         <div className="flex items-center gap-3">
-          <span className="text-3xl font-extrabold text-white tracking-tight drop-shadow">
-            go<span className={`${accentClass} transition-colors duration-[3000ms]`}>Surf</span>
+          <span className="text-3xl font-extrabold tracking-tight drop-shadow" style={{ color: '#dcdcf5' }}>
+            goSurf
           </span>
         </div>
 
