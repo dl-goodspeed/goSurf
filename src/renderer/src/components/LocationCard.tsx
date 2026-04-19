@@ -51,16 +51,11 @@ function Indicator({ ok, unknown = false, ink, classic }: {
   )
 }
 
-function badgeStyle(stoke: string, theme: AppTheme, ink: string, paper: string): React.CSSProperties {
-  if (theme === 'classic') {
-    if (stoke === 'pumping') return { backgroundColor: 'rgba(6,182,212,0.85)',   color: '#fff', borderColor: 'rgba(6,182,212,0.6)'  }
-    if (stoke === 'decent')  return { backgroundColor: 'rgba(245,158,11,0.85)',  color: '#fff', borderColor: 'rgba(245,158,11,0.6)' }
-    if (stoke === 'poor')    return { backgroundColor: 'rgba(255,255,255,0.20)', color: 'rgba(255,255,255,0.75)', borderColor: 'rgba(255,255,255,0.25)' }
-    return { backgroundColor: 'rgba(255,255,255,0.10)', color: 'rgba(255,255,255,0.40)', borderColor: 'rgba(255,255,255,0.15)' }
-  }
-  if (stoke === 'pumping') return { backgroundColor: ink, color: paper, borderColor: ink }
-  if (stoke === 'decent')  return { backgroundColor: `${ink}14`, color: ink, borderColor: ink }
-  return { backgroundColor: 'transparent', color: `${ink}45`, borderColor: `${ink}30` }
+function stokeDotColor(stoke: string): string {
+  if (stoke === 'pumping') return '#a0d9a0'
+  if (stoke === 'decent')  return '#d4cc7a'
+  if (stoke === 'poor')    return '#ff9a9a'
+  return 'transparent'
 }
 
 // Per-row icon colors for Classic theme
@@ -89,7 +84,6 @@ export default function LocationCard({
   theme
 }: LocationCardProps) {
   const ink    = inkFor(theme)
-  const paper  = paperFor(theme)
   const isClassic = theme === 'classic'
   const stoke  = condEval?.overallStoke ?? 'unknown'
 
@@ -141,29 +135,50 @@ export default function LocationCard({
 
   return (
     <div className="h-full flex flex-col overflow-hidden" style={{ color: ink }}>
-      {/* Location name + stoke */}
-      <div className="text-center pt-10 pb-8 px-8 shrink-0" style={{ borderBottom: `2px solid ${divider}` }}>
-        <h1 className="text-7xl font-black tracking-tight uppercase mb-2 leading-none">
-          {location.name}
-        </h1>
-        <p className="text-sm uppercase tracking-[0.2em] mb-7" style={{ color: muted }}>
-          Beach faces {location.beachFacing}
-        </p>
-        <div className="inline-block border-4 px-14 py-4" style={badgeStyle(stoke, theme, ink, paper)}>
-          <span className="text-3xl font-black tracking-[0.15em] uppercase">
-            {stokeLabel[stoke]}
-          </span>
+      {/* Location name + stoke + water temp */}
+      <div
+        className="pt-10 pb-8 px-8 shrink-0"
+        style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', borderBottom: `2px solid ${divider}` }}
+      >
+        {/* left balance spacer */}
+        <div />
+        {/* center: title + stoke */}
+        <div className="text-center">
+          <h1 className="text-7xl font-black tracking-tight uppercase mb-4 leading-none">
+            {location.name}
+          </h1>
+          <p className="text-sm uppercase tracking-[0.2em] mb-6" style={{ color: muted }}>
+            Beach faces {location.beachFacing}
+          </p>
+          <div className="flex items-center justify-center gap-3 mt-4">
+            <span className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: stokeDotColor(stoke) }} />
+            <span className="text-3xl font-black tracking-widest uppercase">
+              {stokeLabel[stoke]}
+            </span>
+          </div>
+        </div>
+        {/* right: water temp, 20px from title edge */}
+        <div className="flex items-start" style={{ paddingLeft: '20px' }}>
+          {waterDisplay != null && (
+            <div className="flex items-start gap-3">
+              <div className="flex flex-col items-center">
+                <Thermometer className="w-24 h-24 shrink-0" style={{ color: icon('temp') }} />
+                <span style={{ color: labelColor, fontSize: '1rem', fontWeight: 'normal' }}>Water Temp</span>
+              </div>
+              <span className="text-3xl font-black" style={{ marginTop: '1.5rem' }}>{waterDisplay}</span>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Conditions rows */}
-      <div className="flex-1 overflow-hidden flex flex-col justify-center px-20 py-2">
+      <div className="flex-1 overflow-hidden flex flex-col justify-center px-8 py-0">
 
         {/* Wave Height */}
-        <div className="flex items-center justify-between py-6" style={{ borderBottom: `1px solid ${divider}` }}>
+        <div className="flex items-center justify-between py-2" style={{ borderBottom: `1px solid ${divider}` }}>
           <div className="flex items-center gap-5">
-            <Waves className="w-8 h-8 shrink-0" style={{ color: icon('waveHeight') }} />
-            <span className="text-2xl font-semibold" style={{ color: labelColor }}>Wave Height</span>
+            <Waves className="w-24 h-24 shrink-0" style={{ color: icon('waveHeight') }} />
+            <span className="text-xs font-semibold" style={{ color: labelColor }}>Wave Height</span>
           </div>
           <div className="flex items-center gap-5">
             <span className="text-3xl font-black">{waveHeightDisplay}</span>
@@ -172,10 +187,10 @@ export default function LocationCard({
         </div>
 
         {/* Wave Period */}
-        <div className="flex items-center justify-between py-6" style={{ borderBottom: `1px solid ${divider}` }}>
+        <div className="flex items-center justify-between py-2" style={{ borderBottom: `1px solid ${divider}` }}>
           <div className="flex items-center gap-5">
-            <TimerReset className="w-8 h-8 shrink-0" style={{ color: icon('wavePeriod') }} />
-            <span className="text-2xl font-semibold" style={{ color: labelColor }}>Wave Period</span>
+            <TimerReset className="w-24 h-24 shrink-0" style={{ color: icon('wavePeriod') }} />
+            <span className="text-xs font-semibold" style={{ color: labelColor }}>Wave Period</span>
           </div>
           <div className="flex items-center gap-5">
             <span className="text-3xl font-black">
@@ -187,10 +202,10 @@ export default function LocationCard({
         </div>
 
         {/* Wind */}
-        <div className="flex items-center justify-between py-6" style={{ borderBottom: `1px solid ${divider}` }}>
+        <div className="flex items-center justify-between py-2" style={{ borderBottom: `1px solid ${divider}` }}>
           <div className="flex items-center gap-5">
-            <Wind className="w-8 h-8 shrink-0" style={{ color: icon('wind') }} />
-            <span className="text-2xl font-semibold" style={{ color: labelColor }}>Wind</span>
+            <Wind className="w-24 h-24 shrink-0" style={{ color: icon('wind') }} />
+            <span className="text-xs font-semibold" style={{ color: labelColor }}>Wind</span>
           </div>
           <div className="flex items-center gap-5">
             <span className="text-3xl font-black">
@@ -205,16 +220,13 @@ export default function LocationCard({
         </div>
 
         {/* Tide */}
-        <div
-          className="flex items-center justify-between py-6"
-          style={{ borderBottom: waterDisplay != null ? `1px solid ${divider}` : undefined }}
-        >
+        <div className="flex items-center justify-between py-2">
           <div className="flex items-center gap-5">
             {tide?.rising
-              ? <WavesArrowUp   className="w-8 h-8 shrink-0" style={{ color: tideIconColor }} />
-              : <WavesArrowDown className="w-8 h-8 shrink-0" style={{ color: tideIconColor }} />
+              ? <WavesArrowUp   className="w-24 h-24 shrink-0" style={{ color: tideIconColor }} />
+              : <WavesArrowDown className="w-24 h-24 shrink-0" style={{ color: tideIconColor }} />
             }
-            <span className="text-2xl font-semibold" style={{ color: labelColor }}>
+            <span className="text-xs font-semibold" style={{ color: labelColor }}>
               Tide <span className="text-base font-normal" style={{ color: faint }}>(est.)</span>
             </span>
           </div>
@@ -237,16 +249,6 @@ export default function LocationCard({
           )}
         </div>
 
-        {/* Water Temp */}
-        {waterDisplay != null && (
-          <div className="flex items-center justify-between py-6">
-            <div className="flex items-center gap-5">
-              <Thermometer className="w-8 h-8 shrink-0" style={{ color: icon('temp') }} />
-              <span className="text-2xl font-semibold" style={{ color: labelColor }}>Water Temp</span>
-            </div>
-            <span className="text-3xl font-black">{waterDisplay}</span>
-          </div>
-        )}
       </div>
 
       {/* Footer */}

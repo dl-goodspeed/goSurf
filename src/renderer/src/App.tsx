@@ -185,7 +185,7 @@ export default function App() {
         className="relative z-10 flex items-center justify-between px-8 py-4 shrink-0 transition-colors duration-300"
         style={{ borderBottom: `2px solid ${isClassic ? 'rgba(255,255,255,0.10)' : ink}`, color: headerInk }}
       >
-        <span className="text-2xl font-black tracking-tight uppercase">
+        <span className="text-2xl font-black tracking-tight uppercase" style={{ color: '#a8a8d8' }}>
           {isClassic
             ? <>go<span className={`${accentClass} transition-colors duration-[3000ms]`}>Surf</span></>
             : 'goSurf'
