@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X } from 'lucide-react'
+import { X, Star } from 'lucide-react'
 import { Location, BEACH_FACING_OPTIONS } from '../types'
 import MapPicker from './MapPicker'
 
@@ -16,6 +16,7 @@ export default function EditLocationModal({ location, onSave, onCancel, ink, pap
   const [lat, setLat] = useState(location.lat)
   const [lng, setLng] = useState(location.lng)
   const [facing, setFacing] = useState(location.beachFacing)
+  const [isFavorite, setIsFavorite] = useState(location.isFavorite ?? false)
 
   const commitAndClose = () => {
     onSave({
@@ -23,7 +24,8 @@ export default function EditLocationModal({ location, onSave, onCancel, ink, pap
       name: name.trim() || location.name,
       lat,
       lng,
-      beachFacing: facing
+      beachFacing: facing,
+      isFavorite
     })
   }
 
@@ -123,6 +125,19 @@ export default function EditLocationModal({ location, onSave, onCancel, ink, pap
             </select>
           </div>
         </div>
+
+        <button
+          type="button"
+          onClick={() => setIsFavorite(!isFavorite)}
+          className="mt-3 w-full flex items-center justify-center gap-2 py-2 text-xs font-black uppercase tracking-widest transition-colors"
+          style={isFavorite
+            ? { border: `2px solid ${ink}`, backgroundColor: ink, color: paper }
+            : { border: `2px solid ${ink}30`, backgroundColor: 'transparent', color: ink }
+          }
+        >
+          <Star className="w-3.5 h-3.5" fill={isFavorite ? paper : 'none'} stroke={isFavorite ? paper : ink} />
+          {isFavorite ? 'Favorite Location' : 'Set as Favorite'}
+        </button>
 
         {/* Actions */}
         <div className="grid grid-cols-2 gap-3 mt-6">

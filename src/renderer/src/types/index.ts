@@ -4,6 +4,7 @@ export interface Location {
   lat: number
   lng: number
   beachFacing: string // e.g. "N", "NE", "E", "SE", "S", "SW", "W", "NW"
+  isFavorite?: boolean
 }
 
 export type AppTheme = 'simple-light' | 'simple-dark' | 'classic' | 'classic-dark'

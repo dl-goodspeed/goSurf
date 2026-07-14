@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, MapPin, Trash2, Pencil, Plus, Power } from 'lucide-react'
+import { X, MapPin, Trash2, Pencil, Plus, Power, Star } from 'lucide-react'
 import { Location, SurfPreferences, BEACH_FACING_OPTIONS, AppTheme } from '../types'
 import MapPicker from './MapPicker'
 import EditLocationModal from './EditLocationModal'
@@ -35,6 +35,7 @@ export default function SettingsModal({
   const [pendingLng, setPendingLng] = useState<number | null>(null)
   const [pendingName, setPendingName] = useState('')
   const [pendingFacing, setPendingFacing] = useState<string>('W')
+  const [pendingFavorite, setPendingFavorite] = useState(false)
 
   const [editingLocation, setEditingLocation] = useState<Location | null>(null)
 
@@ -57,13 +58,16 @@ export default function SettingsModal({
       name: pendingName.trim(),
       lat: pendingLat,
       lng: pendingLng,
-      beachFacing: pendingFacing
+      beachFacing: pendingFacing,
+      isFavorite: pendingFavorite
     }
-    setLocs([...locs, newLoc])
+    const nextLocs = pendingFavorite ? locs.map((l) => ({ ...l, isFavorite: false })) : locs
+    setLocs([...nextLocs, newLoc])
     setPendingLat(null)
     setPendingLng(null)
     setPendingName('')
     setPendingFacing('W')
+    setPendingFavorite(false)
   }
 
   const handleDeleteLocation = (id: string) => {
@@ -71,7 +75,10 @@ export default function SettingsModal({
   }
 
   const handleUpdateLocation = (updated: Location) => {
-    setLocs(locs.map((l) => (l.id === updated.id ? updated : l)))
+    setLocs(locs.map((l) => {
+      if (l.id === updated.id) return updated
+      return updated.isFavorite ? { ...l, isFavorite: false } : l
+    }))
     setEditingLocation(null)
   }
 
@@ -426,7 +433,12 @@ export default function SettingsModal({
                 <div className="flex items-center gap-3">
                   <MapPin className="w-4 h-4 shrink-0" style={{ color: `${ink}40` }} />
                   <div>
-                    <p className="font-bold">{loc.name}</p>
+                    <p className="font-bold flex items-center gap-1.5">
+                      {loc.name}
+                      {loc.isFavorite && (
+                        <Star className="w-3.5 h-3.5" fill={ink} stroke={ink} />
+                      )}
+                    </p>
                     <p className="text-xs" style={{ color: `${ink}38` }}>
                       {loc.lat.toFixed(4)}, {loc.lng.toFixed(4)} · Faces {loc.beachFacing}
                     </p>
@@ -510,6 +522,18 @@ export default function SettingsModal({
                   </select>
                 </div>
               </div>
+              <button
+                type="button"
+                onClick={() => setPendingFavorite(!pendingFavorite)}
+                className="mt-3 w-full flex items-center justify-center gap-2 py-2 text-xs font-black uppercase tracking-widest transition-colors"
+                style={pendingFavorite
+                  ? { border: `2px solid ${ink}`, backgroundColor: ink, color: paper }
+                  : { border: `2px solid ${ink}28`, backgroundColor: 'transparent', color: ink }
+                }
+              >
+                <Star className="w-3.5 h-3.5" fill={pendingFavorite ? paper : 'none'} stroke={pendingFavorite ? paper : ink} />
+                {pendingFavorite ? 'Favorite Location' : 'Set as Favorite'}
+              </button>
               <button
                 onClick={handleAddLocation}
                 disabled={!pendingLat || !pendingName.trim()}
