@@ -28,8 +28,8 @@ interface LocationCardProps {
 }
 
 function inkFor(theme: AppTheme) {
-  if (theme === 'simple-dark') return '#ece8df'
-  if (theme === 'classic')     return '#ffffff'
+  if (theme === 'simple-dark')                        return '#ece8df'
+  if (theme === 'classic' || theme === 'classic-dark') return '#ffffff'
   return '#0a0a0a'
 }
 
@@ -52,7 +52,7 @@ function Indicator({ ok, unknown = false, ink, classic }: {
 }
 
 function stokeDotColor(stoke: string): string {
-  if (stoke === 'pumping') return '#a0d9a0'
+  if (stoke === 'pumping') return '#4ade80'
   if (stoke === 'decent')  return '#d4cc7a'
   if (stoke === 'poor')    return '#ff9a9a'
   return 'transparent'
@@ -63,15 +63,14 @@ const CLASSIC_ICON: Record<string, string> = {
   waveHeight: '#67e8f9',  // cyan-300
   wavePeriod: '#93c5fd',  // blue-300
   wind:       '#6ee7b7',  // emerald-300
-  tideUp:     '#4ade80',  // green-400
-  tideDown:   '#fcd34d',  // amber-300
+  tide:   '#fcd34d',  // amber-300
   temp:       '#fb923c',  // orange-400
 }
 
 const stokeLabel: Record<string, string> = {
   pumping: 'PUMPING',
   decent:  'DECENT',
-  poor:    'POOR / BLOWN',
+  poor:    'POOR',
   unknown: '· · ·'
 }
 
@@ -84,7 +83,7 @@ export default function LocationCard({
   theme
 }: LocationCardProps) {
   const ink    = inkFor(theme)
-  const isClassic = theme === 'classic'
+  const isClassic = theme === 'classic' || theme === 'classic-dark'
   const stoke  = condEval?.overallStoke ?? 'unknown'
 
   const muted  = isClassic ? 'rgba(255,255,255,0.50)' : `${ink}45`
@@ -130,7 +129,7 @@ export default function LocationCard({
 
   const tide = conditions?.tide
   const tideIconColor = isClassic
-    ? (tide?.rising ? CLASSIC_ICON.tideUp : CLASSIC_ICON.tideDown)
+    ? CLASSIC_ICON.tide
     : muted
 
   return (
@@ -151,8 +150,8 @@ export default function LocationCard({
             Beach faces {location.beachFacing}
           </p>
           <div className="flex items-center justify-center gap-3 mt-4">
-            <span className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: stokeDotColor(stoke) }} />
-            <span className="text-3xl font-black tracking-widest uppercase">
+            {/* <span className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: stokeDotColor(stoke) }} /> */}
+            <span className="text-3xl font-black tracking-widest uppercase" style={{ color: stokeDotColor(stoke)}}>
               {stokeLabel[stoke]}
             </span>
           </div>

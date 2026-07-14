@@ -6,7 +6,7 @@ export interface Location {
   beachFacing: string // e.g. "N", "NE", "E", "SE", "S", "SW", "W", "NW"
 }
 
-export type AppTheme = 'simple-light' | 'simple-dark' | 'classic'
+export type AppTheme = 'simple-light' | 'simple-dark' | 'classic' | 'classic-dark'
 
 export interface SurfPreferences {
   minWaveHeight: number          // ft (internal storage always imperial)

@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { X, MapPin, Trash2, Plus, Power } from 'lucide-react'
+import { X, MapPin, Trash2, Pencil, Plus, Power } from 'lucide-react'
 import { Location, SurfPreferences, BEACH_FACING_OPTIONS, AppTheme } from '../types'
 import MapPicker from './MapPicker'
+import EditLocationModal from './EditLocationModal'
 
 interface SettingsModalProps {
   preferences: SurfPreferences
@@ -15,7 +16,8 @@ interface SettingsModalProps {
 const THEME_LABELS: Record<AppTheme, string> = {
   'simple-light': 'Simple — Light',
   'simple-dark':  'Simple — Dark',
-  'classic':      'Classic'
+  'classic':      'Classic',
+  'classic-dark': 'Classic — Dark'
 }
 
 export default function SettingsModal({
@@ -33,6 +35,8 @@ export default function SettingsModal({
   const [pendingLng, setPendingLng] = useState<number | null>(null)
   const [pendingName, setPendingName] = useState('')
   const [pendingFacing, setPendingFacing] = useState<string>('W')
+
+  const [editingLocation, setEditingLocation] = useState<Location | null>(null)
 
   // Modal always uses a neutral dark appearance so it's readable over any background
   const ink   = theme === 'simple-light' ? '#0a0a0a' : '#ece8df'
@@ -64,6 +68,11 @@ export default function SettingsModal({
 
   const handleDeleteLocation = (id: string) => {
     setLocs(locs.filter((l) => l.id !== id))
+  }
+
+  const handleUpdateLocation = (updated: Location) => {
+    setLocs(locs.map((l) => (l.id === updated.id ? updated : l)))
+    setEditingLocation(null)
   }
 
   const inputClass = "w-full px-3 py-2 font-semibold focus:outline-none"
@@ -135,8 +144,8 @@ export default function SettingsModal({
           {/* Theme */}
           <div className="mb-3">
             <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: `${ink}45` }}>Theme</p>
-            <div className="grid grid-cols-3 gap-2">
-              {(['simple-light', 'simple-dark', 'classic'] as AppTheme[]).map((t) => {
+            <div className="grid grid-cols-2 gap-2">
+              {(['simple-light', 'simple-dark', 'classic', 'classic-dark'] as AppTheme[]).map((t) => {
                 const active = (prefs.theme ?? 'simple-light') === t
                 return (
                   <button
@@ -423,12 +432,22 @@ export default function SettingsModal({
                     </p>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleDeleteLocation(loc.id)}
-                  className="p-1.5 transition-opacity opacity-30 hover:opacity-100"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setEditingLocation(loc)}
+                    className="p-1.5 transition-opacity opacity-30 hover:opacity-100"
+                    title="Edit location"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteLocation(loc.id)}
+                    className="p-1.5 transition-opacity opacity-30 hover:opacity-100"
+                    title="Delete location"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -523,6 +542,16 @@ export default function SettingsModal({
           Save & Close
         </button>
       </div>
+
+      {editingLocation && (
+        <EditLocationModal
+          location={editingLocation}
+          onSave={handleUpdateLocation}
+          onCancel={() => setEditingLocation(null)}
+          ink={ink}
+          paper={paper}
+        />
+      )}
     </div>
   )
 }

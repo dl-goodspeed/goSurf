@@ -39,8 +39,8 @@ interface LocationData {
 }
 
 function themeColors(t: AppTheme) {
-  if (t === 'simple-dark') return { ink: '#ece8df', paper: '#0f0f0f' }
-  if (t === 'classic')     return { ink: '#ffffff', paper: 'transparent' }
+  if (t === 'simple-dark')  return { ink: '#ece8df', paper: '#0f0f0f' }
+  if (t === 'classic' || t === 'classic-dark') return { ink: '#ffffff', paper: 'transparent' }
   return { ink: '#0a0a0a', paper: '#f5f0e8' }
 }
 
@@ -71,9 +71,10 @@ export default function App() {
 
   const theme: AppTheme = preferences.theme ?? 'simple-light'
   const { ink, paper } = themeColors(theme)
-  const isClassic = theme === 'classic'
-
-  const bgStyle = isClassic ? gradientStyle : { backgroundColor: paper }
+  const isClassic = theme === 'classic' || theme === 'classic-dark'
+  const bgStyle = theme === 'classic'      ? gradientStyle
+                : theme === 'classic-dark' ? { backgroundColor: '#000000' }
+                : { backgroundColor: paper }
   const headerInk = isClassic ? '#ffffff' : ink
   const accentClass = isClassic ? (PERIOD_ACCENT[period] ?? 'text-cyan-400') : ''
 
@@ -177,8 +178,8 @@ export default function App() {
       className="w-screen h-screen overflow-hidden flex flex-col relative transition-all duration-[3000ms]"
       style={bgStyle}
     >
-      {/* Classic overlay */}
-      {isClassic && <div className="absolute inset-0 bg-black/20 pointer-events-none z-0" />}
+      {/* Classic overlay — only on gradient variant */}
+      {theme === 'classic' && <div className="absolute inset-0 bg-black/20 pointer-events-none z-0" />}
 
       {/* Header */}
       <header
