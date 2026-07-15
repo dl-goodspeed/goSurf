@@ -20,6 +20,17 @@ export interface SurfPreferences {
   slideshowEnabled: boolean
 }
 
+export const DEFAULT_PREFERENCES: SurfPreferences = {
+  minWaveHeight: 2,
+  maxWaveHeight: 8,
+  minWavePeriod: 10,
+  maxWindSpeedOffshore: 15,
+  maxWindSpeedOnshore: 20,
+  useMetric: false,
+  theme: 'simple-light',
+  slideshowEnabled: false
+}
+
 export interface TideInfo {
   height: number            // -1 (low) to 1 (high), normalized
   rising: boolean
@@ -47,6 +58,15 @@ export interface ConditionEval {
   windOk: boolean         // speed ok given current direction
   windIsOffshore: boolean // true = offshore, false = onshore (for display)
   overallStoke: 'pumping' | 'decent' | 'poor' | 'unknown'
+}
+
+// Single source of truth for stoke → color, shared by the desktop LocationCard
+// and the extension's toolbar badge so they can never drift apart.
+export const STOKE_COLORS: Record<ConditionEval['overallStoke'], string> = {
+  pumping: '#4ade80',
+  decent:  '#d4cc7a',
+  poor:    '#ff9a9a',
+  unknown: 'transparent'
 }
 
 export type BeachFacing =

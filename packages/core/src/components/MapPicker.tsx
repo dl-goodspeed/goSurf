@@ -35,11 +35,18 @@ export default function MapPicker({ onLocationSelect, selectedLat, selectedLng }
     // Force leaflet CSS to load
   }, [])
 
+  // MapContainer only applies center/zoom on initial mount (react-leaflet doesn't
+  // re-center on prop changes), so this only affects maps that already have a
+  // location when they first render — e.g. the edit modal for an existing spot.
+  const initialCenter: [number, number] =
+    selectedLat != null && selectedLng != null ? [selectedLat, selectedLng] : [20, -157]
+  const initialZoom = selectedLat != null && selectedLng != null ? 12 : 3
+
   return (
     <div className="w-full h-64 rounded-lg overflow-hidden border border-slate-600">
       <MapContainer
-        center={[20, -157]}
-        zoom={3}
+        center={initialCenter}
+        zoom={initialZoom}
         className="w-full h-full"
         style={{ background: '#1e293b' }}
       >

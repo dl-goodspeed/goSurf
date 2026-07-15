@@ -1,11 +1,15 @@
-import { Location, SurfConditions, ConditionEval, AppTheme } from '../types'
 import {
+  Location,
+  SurfConditions,
+  ConditionEval,
+  AppTheme,
+  STOKE_COLORS,
   metersToFeet,
   kmhToMph,
   celsiusToF,
-  degreesToCompass
-} from '../services/openMeteo'
-import { formatTideCountdown } from '../services/tideCalculator'
+  degreesToCompass,
+  formatTideCountdown
+} from '@gosurf/core'
 import {
   Waves,
   TimerReset,
@@ -51,11 +55,8 @@ function Indicator({ ok, unknown = false, ink, classic }: {
   )
 }
 
-function stokeDotColor(stoke: string): string {
-  if (stoke === 'pumping') return '#4ade80'
-  if (stoke === 'decent')  return '#d4cc7a'
-  if (stoke === 'poor')    return '#ff9a9a'
-  return 'transparent'
+function stokeDotColor(stoke: ConditionEval['overallStoke']): string {
+  return STOKE_COLORS[stoke]
 }
 
 // Per-row icon colors for Classic theme

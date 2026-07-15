@@ -1,24 +1,17 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Settings, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useLocalStorage } from './hooks/useLocalStorage'
-import { useTimeTheme } from './hooks/useTimeTheme'
-import { Location, SurfPreferences, SurfConditions, ConditionEval, AppTheme } from './types'
-import { fetchSurfConditions, evaluateConditions } from './services/openMeteo'
-import SettingsModal from './components/SettingsModal'
+import {
+  useTimeTheme,
+  useSurfConditions,
+  Location,
+  SurfPreferences,
+  AppTheme,
+  SettingsModal,
+  DEFAULT_PREFERENCES
+} from '@gosurf/core'
 import LocationCard from './components/LocationCard'
 
-const DEFAULT_PREFERENCES: SurfPreferences = {
-  minWaveHeight: 2,
-  maxWaveHeight: 8,
-  minWavePeriod: 10,
-  maxWindSpeedOffshore: 15,
-  maxWindSpeedOnshore: 20,
-  useMetric: false,
-  theme: 'simple-light',
-  slideshowEnabled: false
-}
-
-const REFRESH_INTERVAL_MS = 60 * 1000
 const SLIDESHOW_INTERVAL_MS = 20 * 1000
 
 const PERIOD_ACCENT: Record<string, string> = {
@@ -30,12 +23,6 @@ const PERIOD_ACCENT: Record<string, string> = {
   sunset:    'text-orange-400',
   dusk:      'text-amber-400',
   evening:   'text-indigo-300'
-}
-
-interface LocationData {
-  conditions: SurfConditions | null
-  eval: ConditionEval | null
-  loading: boolean
 }
 
 function themeColors(t: AppTheme) {
@@ -51,7 +38,7 @@ export default function App() {
   )
   const [locations, setLocations] = useLocalStorage<Location[]>('gosurf:locations', [])
   const [showSettings, setShowSettings] = useState(false)
-  const [locationData, setLocationData] = useState<Record<string, LocationData>>({})
+  const { locationData, refetch } = useSurfConditions(locations, preferences)
 
   const [currentIndex, setCurrentIndex] = useState(0)
   const [prevIndex, setPrevIndex] = useState<number | null>(null)
@@ -62,7 +49,6 @@ export default function App() {
   currentIndexRef.current = currentIndex
   animatingRef.current = animating
 
-  const dataIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const slideshowRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const slideshowResetRef = useRef(0)
 
@@ -119,46 +105,9 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slideshowActive, locations.length, navigate, slideshowResetRef.current])
 
-  const fetchAll = useCallback(async (locs: Location[], prefs: SurfPreferences) => {
-    if (locs.length === 0) return
-
-    setLocationData((prev) => {
-      const next = { ...prev }
-      locs.forEach((loc) => {
-        next[loc.id] = { conditions: prev[loc.id]?.conditions ?? null, eval: prev[loc.id]?.eval ?? null, loading: true }
-      })
-      return next
-    })
-
-    const results = await Promise.all(
-      locs.map(async (loc) => {
-        const conditions = await fetchSurfConditions(loc.lat, loc.lng)
-        const evalResult = evaluateConditions(conditions, prefs, loc.beachFacing)
-        return { id: loc.id, conditions, eval: evalResult }
-      })
-    )
-
-    setLocationData((prev) => {
-      const next = { ...prev }
-      results.forEach(({ id, conditions, eval: evalResult }) => {
-        next[id] = { conditions, eval: evalResult, loading: false }
-      })
-      return next
-    })
-  }, [])
-
-  useEffect(() => {
-    fetchAll(locations, preferences)
-
-    if (dataIntervalRef.current) clearInterval(dataIntervalRef.current)
-    dataIntervalRef.current = setInterval(() => fetchAll(locations, preferences), REFRESH_INTERVAL_MS)
-
-    return () => { if (dataIntervalRef.current) clearInterval(dataIntervalRef.current) }
-  }, [locations, preferences, fetchAll])
-
   const handleCloseSettings = () => {
     setShowSettings(false)
-    fetchAll(locations, preferences)
+    refetch()
   }
 
   const currentLocation = locations[currentIndex]
@@ -302,6 +251,7 @@ export default function App() {
           onSaveLocations={setLocations}
           onClose={handleCloseSettings}
           theme={theme}
+          onQuit={() => window.close()}
         />
       )}
     </div>

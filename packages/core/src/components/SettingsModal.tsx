@@ -11,6 +11,9 @@ interface SettingsModalProps {
   onSaveLocations: (locs: Location[]) => void
   onClose: () => void
   theme: AppTheme
+  onQuit?: () => void
+  /** Render inline (no fixed backdrop, fixed-height internal scroll) instead of as a full-viewport overlay. Used when embedding in a small surface like a browser extension popup. */
+  embedded?: boolean
 }
 
 const THEME_LABELS: Record<AppTheme, string> = {
@@ -26,7 +29,9 @@ export default function SettingsModal({
   onSavePreferences,
   onSaveLocations,
   onClose,
-  theme
+  theme,
+  onQuit,
+  embedded = false
 }: SettingsModalProps) {
   const [prefs, setPrefs] = useState<SurfPreferences>(preferences)
   const [locs, setLocs] = useState<Location[]>(locations)
@@ -90,12 +95,8 @@ export default function SettingsModal({
   }
   const inputFocusStyle = { borderColor: ink }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: `${ink}55` }}>
-      <div
-        className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl p-8"
-        style={{ backgroundColor: paper, border: `2px solid ${ink}`, color: ink }}
-      >
+  const cardContent = (
+    <>
         {/* Header */}
         <div
           className="flex items-center justify-between mb-8 pb-5"
@@ -103,23 +104,25 @@ export default function SettingsModal({
         >
           <h2 className="text-3xl font-black tracking-tight uppercase">Settings</h2>
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => window.close()}
-              className="flex items-center gap-1.5 px-3 py-1.5 font-black uppercase tracking-wide text-sm transition-colors"
-              style={{ border: `2px solid ${ink}`, color: ink }}
-              onMouseEnter={(e) => {
-                ;(e.currentTarget as HTMLButtonElement).style.backgroundColor = ink
-                ;(e.currentTarget as HTMLButtonElement).style.color = paper
-              }}
-              onMouseLeave={(e) => {
-                ;(e.currentTarget as HTMLButtonElement).style.backgroundColor = 'transparent'
-                ;(e.currentTarget as HTMLButtonElement).style.color = ink
-              }}
-              title="Quit goSurf"
-            >
-              <Power className="w-4 h-4" />
-              Quit
-            </button>
+            {onQuit && (
+              <button
+                onClick={onQuit}
+                className="flex items-center gap-1.5 px-3 py-1.5 font-black uppercase tracking-wide text-sm transition-colors"
+                style={{ border: `2px solid ${ink}`, color: ink }}
+                onMouseEnter={(e) => {
+                  ;(e.currentTarget as HTMLButtonElement).style.backgroundColor = ink
+                  ;(e.currentTarget as HTMLButtonElement).style.color = paper
+                }}
+                onMouseLeave={(e) => {
+                  ;(e.currentTarget as HTMLButtonElement).style.backgroundColor = 'transparent'
+                  ;(e.currentTarget as HTMLButtonElement).style.color = ink
+                }}
+                title="Quit goSurf"
+              >
+                <Power className="w-4 h-4" />
+                Quit
+              </button>
+            )}
             <button
               onClick={handleSaveAll}
               className="p-2 transition-colors"
@@ -152,7 +155,9 @@ export default function SettingsModal({
           <div className="mb-3">
             <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: `${ink}45` }}>Theme</p>
             <div className="grid grid-cols-2 gap-2">
-              {(['simple-light', 'simple-dark', 'classic', 'classic-dark'] as AppTheme[]).map((t) => {
+              {(['simple-light', 'simple-dark', 'classic', 'classic-dark'] as AppTheme[])
+                .filter((t) => !(embedded && t === 'classic-dark'))
+                .map((t) => {
                 const active = (prefs.theme ?? 'simple-light') === t
                 return (
                   <button
@@ -171,35 +176,37 @@ export default function SettingsModal({
             </div>
           </div>
 
-          {/* Slideshow */}
-          <div
-            className="flex items-center justify-between px-4 py-3 mb-3"
-            style={{ border: `1px solid ${ink}22` }}
-          >
-            <div className="flex flex-col">
-              <span className="text-base font-semibold">Slideshow</span>
-              <span className="text-xs" style={{ color: `${ink}45` }}>Auto-advance locations every 20s</span>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={prefs.slideshowEnabled ?? false}
-              onClick={() => setPrefs({ ...prefs, slideshowEnabled: !(prefs.slideshowEnabled ?? false) })}
-              className="relative inline-flex h-6 w-12 items-center transition-colors"
-              style={{
-                border: `2px solid ${ink}`,
-                backgroundColor: (prefs.slideshowEnabled ?? false) ? ink : 'transparent'
-              }}
+          {/* Slideshow — full-screen desktop app only, not meaningful in the compact popup */}
+          {!embedded && (
+            <div
+              className="flex items-center justify-between px-4 py-3 mb-3"
+              style={{ border: `1px solid ${ink}22` }}
             >
-              <span
-                className="inline-block h-4 w-4 transition-transform"
+              <div className="flex flex-col">
+                <span className="text-base font-semibold">Slideshow</span>
+                <span className="text-xs" style={{ color: `${ink}45` }}>Auto-advance locations every 20s</span>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={prefs.slideshowEnabled ?? false}
+                onClick={() => setPrefs({ ...prefs, slideshowEnabled: !(prefs.slideshowEnabled ?? false) })}
+                className="relative inline-flex h-6 w-12 items-center transition-colors"
                 style={{
-                  backgroundColor: (prefs.slideshowEnabled ?? false) ? paper : ink,
-                  transform: (prefs.slideshowEnabled ?? false) ? 'translateX(24px)' : 'translateX(4px)'
+                  border: `2px solid ${ink}`,
+                  backgroundColor: (prefs.slideshowEnabled ?? false) ? ink : 'transparent'
                 }}
-              />
-            </button>
-          </div>
+              >
+                <span
+                  className="inline-block h-4 w-4 transition-transform"
+                  style={{
+                    backgroundColor: (prefs.slideshowEnabled ?? false) ? paper : ink,
+                    transform: (prefs.slideshowEnabled ?? false) ? 'translateX(24px)' : 'translateX(4px)'
+                  }}
+                />
+              </button>
+            </div>
+          )}
 
           {/* Units */}
           <div
@@ -464,7 +471,7 @@ export default function SettingsModal({
             ))}
           </div>
 
-          {locs.length < 3 && (
+          {locs.length < 3 && !editingLocation && (
             <div className="p-4" style={{ border: `1px solid ${ink}22` }}>
               <p className="text-sm mb-3" style={{ color: `${ink}40` }}>
                 Click on the map to select a location, then fill in the details below.
@@ -565,6 +572,21 @@ export default function SettingsModal({
         >
           Save & Close
         </button>
+    </>
+  )
+
+  return (
+    <div
+      className={embedded ? 'w-full' : 'fixed inset-0 z-50 flex items-center justify-center'}
+      style={embedded ? undefined : { backgroundColor: `${ink}55` }}
+    >
+      <div
+        className={embedded
+          ? 'w-full max-h-[560px] overflow-y-auto p-6'
+          : 'relative w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl p-8'}
+        style={{ backgroundColor: paper, border: embedded ? undefined : `2px solid ${ink}`, color: ink }}
+      >
+        {cardContent}
       </div>
 
       {editingLocation && (
