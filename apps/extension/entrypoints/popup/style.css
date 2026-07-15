@@ -1,0 +1,11 @@
+/*
+ * The shared index.css pins html/body/#root to height:100% + overflow:hidden,
+ * which is correct for the full-screen desktop app but breaks Chrome's popup
+ * auto-sizing: with no definite viewport to resolve 100% against, the popup
+ * collapses to a sliver. Popups should size to their natural content height.
+ */
+html, body, #root {
+  height: auto;
+  width: auto;
+  overflow: visible;
+}
